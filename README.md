@@ -10,6 +10,54 @@ It parses Claude session JSONL files from `~/.claude/projects/`, computes usage/
 - Exposes REST APIs for dashboard data and detailed drill-down views.
 - Serves a React + Vite UI from the same Go binary.
 
+## Who this helps
+This dashboard is useful for:
+- **Individual developers** who want to understand AI usage, token burn, and cost over time.
+- **Power users of Claude Code** who want to improve prompt quality and session hygiene.
+- **Tech leads / engineering managers** who need visibility into usage patterns, project focus, and productivity windows.
+- **Anyone optimizing AI spend** who wants to track cache efficiency and reduce repeated context costs.
+
+## Widget ideas this dashboard gives you
+If you are building your own analytics UI, this project shows practical widget patterns you can reuse:
+- **KPI cards**: sessions, total spend, output tokens, cache efficiency.
+- **Token trend chart**: cache vs input/output views, with date-range toggles.
+- **Session explorer table**: searchable session list plus detail drawer.
+- **Tool usage panel**: top tools with clickable sample drill-down.
+- **Hourly activity chart**: peak coding/agent activity by hour.
+- **Conversation breakdown table**: prompt/response previews with output, context %, cost, and time.
+- **Context health panel**: context-window fill tracking with warning states.
+- **Prompt insights card**: actionable suggestions to reduce token waste and improve quality.
+- **Live update banner**: real-time feedback when new session data arrives.
+
+## Dashboard screenshots (with explanation)
+### 1) Dashboard overview
+Shows the global period filter, live session banner, top KPI cards, and token trend chart for quick usage/cost monitoring.
+![Dashboard overview](docs/images/dashboard-overview.png)
+
+### 2) Session Explorer + Prompt Insights
+Shows the searchable/paginated session table on the left and prompt quality insights with actionable optimization hints on the right.
+![Session Explorer and Prompt Insights](docs/images/session-explorer-and-prompt-insights.png)
+
+### 3) Session Detail drawer
+Shows per-session deep dive data (turn timeline, token breakdown, tool calls, estimated cost) opened from Session Explorer.
+![Session Detail drawer](docs/images/session-detail-drawer.png)
+
+### 4) Tool Usage, Hourly Activity, and Conversations
+Shows behavioral analytics widgets: tool distribution, productivity by hour, and recent conversation summaries with token/cost context.
+![Tool Usage, Hourly Activity, and Conversations](docs/images/tool-usage-activity-and-conversations.png)
+
+### 5) Tool sample details drawer
+Shows drill-down for a selected tool (example: `Read`) with recent sampled calls to understand usage patterns.
+![Tool samples drawer (Read)](docs/images/tool-samples-drawer-read.png)
+
+### 6) Conversation Detail drawer
+Shows turn-level conversation analysis including billed token categories, context-window usage, cost, latency, and full assistant response.
+![Conversation Detail drawer](docs/images/conversation-detail-drawer.png)
+
+### 7) Context Health + Claude Code Config
+Shows session context-fill health and system-level Claude usage/config overview (projects, session files, plugins, MCP servers).
+![Context Health and System Info](docs/images/context-health-and-system-info.png)
+
 ## Tech stack
 - Backend: Go (`net/http`, `embed`)
 - Realtime: `gorilla/websocket`
