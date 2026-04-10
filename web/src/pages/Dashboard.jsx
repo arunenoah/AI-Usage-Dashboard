@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import StatCard from '../components/StatCard.jsx'
 import TokenChart from '../components/TokenChart.jsx'
-import CostChart from '../components/CostChart.jsx'
 import ToolChart from '../components/ToolChart.jsx'
 import PromptScore from '../components/PromptScore.jsx'
 import ActivityChart from '../components/ActivityChart.jsx'
 import LiveBanner from '../components/LiveBanner.jsx'
+import SessionTable from '../components/SessionTable.jsx'
+import ContextHealth from '../components/ContextHealth.jsx'
 import { useWebSocket } from '../hooks/useWebSocket.js'
 
 function fmt(n) {
@@ -18,11 +19,15 @@ function fmt(n) {
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [sessions, setSessions] = useState([])
+  const [total, setTotal] = useState(0)
   const [liveTokens, setLiveTokens] = useState(null)
 
   const load = () => {
     fetch('/api/stats').then(r => r.json()).then(setStats).catch(() => {})
-    fetch('/api/sessions?limit=200').then(r => r.json()).then(d => setSessions(d.sessions || [])).catch(() => {})
+    fetch('/api/sessions?limit=200')
+      .then(r => r.json())
+      .then(d => { setSessions(d.sessions || []); setTotal(d.total || 0) })
+      .catch(() => {})
   }
 
   useEffect(() => { load() }, [])
@@ -34,70 +39,53 @@ export default function Dashboard() {
     }
   })
 
-  if (!stats) return <div style={{ padding: 40, color: '#7b809a', fontFamily: 'Figtree' }}>Loading sessions…</div>
+  if (!stats) return (
+    <div style={{ padding: 40, color: '#7b809a', fontFamily: 'Figtree', fontSize: 14 }}>
+      Loading sessions…
+    </div>
+  )
+
+  const totalTokens = (stats.total_input_tokens || 0) + (stats.total_output_tokens || 0)
 
   return (
-    <>
-      <div className="page-header">
-        <div className="page-title">Dashboard</div>
-        <div className="page-subtitle">AI session analytics — Claude Code</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Page header */}
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#344767' }}>Dashboard</div>
+        <div style={{ fontSize: 12, color: '#7b809a', marginTop: 2 }}>AI session analytics — Claude Code</div>
       </div>
 
+      {/* Live banner */}
       <LiveBanner session={stats.active_session} liveTokens={liveTokens} />
 
-      <div className="stat-grid">
-        <StatCard label="Total Sessions" value={stats.total_sessions} icon="box" colorClass="si-blue" />
+      {/* Stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+        <StatCard label="Total Sessions" value={total || stats.total_sessions} icon="box" colorClass="si-blue" />
         <StatCard label="Input Tokens" value={fmt(stats.total_input_tokens)} icon="bar-chart" colorClass="si-teal" />
         <StatCard label="Output Tokens" value={fmt(stats.total_output_tokens)} icon="cpu" colorClass="si-orange" />
         <StatCard label="Est. Cost" value={`$${(stats.total_cost_usd || 0).toFixed(2)}`} icon="credit-card" colorClass="si-purple" />
       </div>
 
-      <div className="card-grid-2">
-        <div className="card">
-          <div className="card-strip strip-blue" />
-          <div className="card-body">
-            <div className="card-title">Token Usage</div>
-            <div className="card-sub">Input · Output · Cache — last 30 days</div>
-            <TokenChart daily={stats.daily || []} />
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-strip strip-teal" />
-          <div className="card-body">
-            <div className="card-title">Estimated Cost</div>
-            <div className="card-sub">USD per day (Sonnet pricing)</div>
-            <CostChart daily={stats.daily || []} />
-          </div>
-        </div>
+      {/* Token usage chart — full width */}
+      <TokenChart daily={stats.daily || []} totalTokens={totalTokens} />
+
+      {/* Session explorer + Prompt insights */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 20 }}>
+        <SessionTable sessions={sessions} total={total || stats.total_sessions} />
+        <PromptScore score={74} />
       </div>
 
-      <div className="card-grid-2">
-        <div className="card">
-          <div className="card-strip strip-orange" />
-          <div className="card-body">
-            <div className="card-title">Prompt Optimization Score</div>
-            <div className="card-sub">Based on specificity, context reuse, and session hygiene</div>
-            <PromptScore score={74} />
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-strip strip-purple" />
-          <div className="card-body">
-            <div className="card-title">Tool Distribution</div>
-            <div className="card-sub">Most used tools across all sessions</div>
-            <ToolChart toolCounts={stats.tool_counts || {}} />
-          </div>
-        </div>
+      {/* Tool usage + Hourly activity */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <ToolChart toolCounts={stats.tool_counts || {}} />
+        <ActivityChart sessions={sessions} />
       </div>
 
-      <div className="card card-mb">
-        <div className="card-strip strip-blue" />
-        <div className="card-body">
-          <div className="card-title">Hourly Activity</div>
-          <div className="card-sub">Session starts by hour of day</div>
-          <ActivityChart sessions={sessions} />
-        </div>
+      {/* Context health */}
+      <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: 20 }}>
+        <ContextHealth sessions={sessions} />
+        <div />
       </div>
-    </>
+    </div>
   )
 }
