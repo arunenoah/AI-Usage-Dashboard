@@ -29,6 +29,15 @@ If you are building your own analytics UI, this project shows practical widget p
 - **Prompt insights card**: actionable suggestions to reduce token waste and improve quality.
 - **Live update banner**: real-time feedback when new session data arrives.
 
+## Quick Tour
+- [Dashboard overview](#1-dashboard-overview) — KPI cards, live banner, token trend chart
+- [Session Explorer + Prompt Insights](#2-session-explorer--prompt-insights) — Searchable sessions with quality hints
+- [Session Detail drawer](#3-session-detail-drawer) — Per-session deep dive with turn timeline
+- [Tool Usage, Hourly Activity, and Conversations](#4-tool-usage-hourly-activity-and-conversations) — Behavioral analytics widgets
+- [Tool samples drawer](#5-tool-samples-drawer) — Drill-down for selected tool usage patterns
+- [Conversation Detail drawer](#6-conversation-detail-drawer) — Turn-level analysis with token/cost breakdown
+- [Context Health + Claude Code Config](#7-context-health--claude-code-config) — Context-fill tracking and system overview
+
 ## Dashboard screenshots (with explanation)
 ### 1) Dashboard overview
 Shows the global period filter, live session banner, top KPI cards, and token trend chart for quick usage/cost monitoring.
