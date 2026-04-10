@@ -25,24 +25,56 @@ function calcTurnCost(usage) {
 
 const TOOL_COLOR = {
   Read: '#1A73E8', Bash: '#FB8C00', Edit: '#4CAF50', Grep: '#00BCD4',
-  Glob: '#9C27B0', Write: '#9baabf', Task: '#F44336', Agent: '#E91E63',
+  Glob: '#9C27B0', Write: '#FF7043', Task: '#F44336', Agent: '#E91E63',
+  NotebookEdit: '#26A69A',
 }
+
+// Derive structured facts from all turns
+function analyzeSession(turns) {
+  const filesWritten = new Set()
+  const filesEdited = new Set()
+  const filesRead = new Set()
+  const subagents = []
+  const bashCommands = []
+
+  turns.forEach(turn => {
+    if (turn.role !== 'assistant' || !turn.tool_inputs) return
+    Object.entries(turn.tool_inputs).forEach(([key, val]) => {
+      if (key.startsWith('Write:')) filesWritten.add(val)
+      else if (key.startsWith('Edit:')) filesEdited.add(val)
+      else if (key.startsWith('Read:')) filesRead.add(val)
+      else if (key.startsWith('Agent:') || key === 'Agent') {
+        subagents.push(val)
+      } else if (key === 'Bash') bashCommands.push(val)
+    })
+  })
+
+  return {
+    filesWritten: [...filesWritten],
+    filesEdited: [...filesEdited],
+    filesRead: [...filesRead],
+    subagents,
+    bashCommands,
+  }
+}
+
+const TABS = ['Timeline', 'Files', 'Subagents']
 
 export default function SessionDetail({ sessionId, onClose }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const drawerRef = useRef(null)
+  const [tab, setTab] = useState('Timeline')
 
   useEffect(() => {
     if (!sessionId) return
     setLoading(true)
+    setTab('Timeline')
     fetch(`/api/sessions/${sessionId}/turns`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }, [sessionId])
 
-  // Close on backdrop click
   const handleBackdrop = e => {
     if (e.target === e.currentTarget) onClose()
   }
@@ -52,9 +84,8 @@ export default function SessionDetail({ sessionId, onClose }) {
   const session = data?.session
   const turns = data?.turns || []
   const totalCost = turns.reduce((acc, t) => acc + calcTurnCost(t.usage), 0)
-
-  // Find the slowest turn
   const maxDuration = Math.max(...turns.map(t => t.duration_ms || 0))
+  const analysis = analyzeSession(turns)
 
   return (
     <div
@@ -64,14 +95,11 @@ export default function SessionDetail({ sessionId, onClose }) {
         zIndex: 500, display: 'flex', justifyContent: 'flex-end'
       }}
     >
-      <div
-        ref={drawerRef}
-        style={{
-          width: 640, height: '100vh', background: '#fff',
-          boxShadow: '-8px 0 40px rgba(0,0,0,0.12)',
-          display: 'flex', flexDirection: 'column', overflow: 'hidden'
-        }}
-      >
+      <div style={{
+        width: 680, height: '100vh', background: '#fff',
+        boxShadow: '-8px 0 40px rgba(0,0,0,0.12)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden'
+      }}>
         {/* Header */}
         <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f2f5', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
@@ -82,13 +110,10 @@ export default function SessionDetail({ sessionId, onClose }) {
               </div>
             )}
           </div>
-          <button
-            onClick={onClose}
-            style={{ fontSize: 20, color: '#9baabf', padding: '0 4px', lineHeight: 1, cursor: 'pointer', background: 'none', border: 'none' }}
-          >×</button>
+          <button onClick={onClose} style={{ fontSize: 22, color: '#9baabf', padding: '0 4px', lineHeight: 1, cursor: 'pointer', background: 'none', border: 'none' }}>×</button>
         </div>
 
-        {/* Session summary strip */}
+        {/* Summary strip */}
         {session && (
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
@@ -113,11 +138,35 @@ export default function SessionDetail({ sessionId, onClose }) {
           </div>
         )}
 
-        {/* Turns list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
-          {loading && <div style={{ color: '#9baabf', textAlign: 'center', paddingTop: 40 }}>Loading turns…</div>}
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #f0f2f5', padding: '0 24px' }}>
+          {TABS.map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{
+              padding: '10px 16px', fontSize: 13, fontWeight: 600, border: 'none', background: 'none', cursor: 'pointer',
+              color: tab === t ? '#1A73E8' : '#7b809a',
+              borderBottom: tab === t ? '2px solid #1A73E8' : '2px solid transparent',
+            }}>
+              {t}
+              {t === 'Files' && (analysis.filesWritten.length + analysis.filesEdited.length) > 0 && (
+                <span style={{ marginLeft: 6, fontSize: 10, background: '#EBF4FF', color: '#1A73E8', borderRadius: 10, padding: '1px 6px' }}>
+                  {analysis.filesWritten.length + analysis.filesEdited.length}
+                </span>
+              )}
+              {t === 'Subagents' && analysis.subagents.length > 0 && (
+                <span style={{ marginLeft: 6, fontSize: 10, background: '#FCE4EC', color: '#E91E63', borderRadius: 10, padding: '1px 6px' }}>
+                  {analysis.subagents.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-          {turns.map((turn, i) => {
+        {/* Content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+          {loading && <div style={{ color: '#9baabf', textAlign: 'center', paddingTop: 40 }}>Loading…</div>}
+
+          {/* TIMELINE TAB */}
+          {!loading && tab === 'Timeline' && turns.map((turn, i) => {
             const isUser = turn.role === 'user'
             const isSlowest = !isUser && turn.duration_ms === maxDuration && maxDuration > 0
             const turnCost = calcTurnCost(turn.usage)
@@ -130,7 +179,6 @@ export default function SessionDetail({ sessionId, onClose }) {
                 background: isSlowest ? '#FFF8F8' : isUser ? '#fafbfc' : '#fff',
                 overflow: 'hidden'
               }}>
-                {/* Turn header */}
                 <div style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '8px 12px',
@@ -163,30 +211,27 @@ export default function SessionDetail({ sessionId, onClose }) {
                   )}
                 </div>
 
-                {/* Turn body */}
                 <div style={{ padding: '10px 12px' }}>
-                  {/* Text */}
                   {turn.text && (
                     <div style={{ fontSize: 12, color: '#344767', lineHeight: 1.6, marginBottom: turn.tool_calls?.length ? 8 : 0 }}>
                       {turn.text}
                     </div>
                   )}
-
-                  {/* Tool calls */}
                   {turn.tool_calls?.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
-                      {turn.tool_calls.map((tool, j) => (
-                        <span key={j} style={{
-                          padding: '2px 7px', borderRadius: 4, fontSize: 10, fontWeight: 700,
-                          background: (TOOL_COLOR[tool] || '#9baabf') + '18',
-                          color: TOOL_COLOR[tool] || '#9baabf',
-                          fontFamily: 'JetBrains Mono'
-                        }}>{tool}</span>
-                      ))}
+                      {[...new Set(turn.tool_calls)].map((tool, j) => {
+                        const count = turn.tool_calls.filter(t => t === tool).length
+                        return (
+                          <span key={j} style={{
+                            padding: '2px 7px', borderRadius: 4, fontSize: 10, fontWeight: 700,
+                            background: (TOOL_COLOR[tool] || '#9baabf') + '18',
+                            color: TOOL_COLOR[tool] || '#9baabf',
+                            fontFamily: 'JetBrains Mono'
+                          }}>{tool}{count > 1 ? ` ×${count}` : ''}</span>
+                        )
+                      })}
                     </div>
                   )}
-
-                  {/* Token breakdown */}
                   {turn.usage && (
                     <div style={{
                       display: 'flex', gap: 12, marginTop: 8,
@@ -204,7 +249,90 @@ export default function SessionDetail({ sessionId, onClose }) {
             )
           })}
 
-          {!loading && turns.length === 0 && (
+          {/* FILES TAB */}
+          {!loading && tab === 'Files' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {analysis.filesWritten.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#FF7043', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>📄</span> Created / Written ({analysis.filesWritten.length})
+                  </div>
+                  {analysis.filesWritten.map((f, i) => (
+                    <div key={i} style={{ padding: '7px 12px', borderRadius: 6, background: '#FBE9E7', marginBottom: 4, fontFamily: 'JetBrains Mono', fontSize: 11, color: '#BF360C' }}>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {analysis.filesEdited.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#4CAF50', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>✏️</span> Edited ({analysis.filesEdited.length})
+                  </div>
+                  {analysis.filesEdited.map((f, i) => (
+                    <div key={i} style={{ padding: '7px 12px', borderRadius: 6, background: '#E8F5E9', marginBottom: 4, fontFamily: 'JetBrains Mono', fontSize: 11, color: '#1B5E20' }}>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {analysis.filesRead.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#1A73E8', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>👁</span> Read ({analysis.filesRead.length})
+                  </div>
+                  {analysis.filesRead.map((f, i) => (
+                    <div key={i} style={{ padding: '7px 12px', borderRadius: 6, background: '#EBF4FF', marginBottom: 4, fontFamily: 'JetBrains Mono', fontSize: 11, color: '#0D47A1' }}>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {analysis.filesWritten.length === 0 && analysis.filesEdited.length === 0 && analysis.filesRead.length === 0 && (
+                <div style={{ color: '#9baabf', textAlign: 'center', paddingTop: 40, fontSize: 13 }}>No file operations recorded</div>
+              )}
+              {analysis.bashCommands.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#FB8C00', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>$</span> Bash Commands ({analysis.bashCommands.length})
+                  </div>
+                  {analysis.bashCommands.map((cmd, i) => (
+                    <div key={i} style={{ padding: '7px 12px', borderRadius: 6, background: '#FFF3E0', marginBottom: 4, fontFamily: 'JetBrains Mono', fontSize: 11, color: '#E65100' }}>
+                      {cmd}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SUBAGENTS TAB */}
+          {!loading && tab === 'Subagents' && (
+            <div>
+              {analysis.subagents.length === 0 ? (
+                <div style={{ color: '#9baabf', textAlign: 'center', paddingTop: 40, fontSize: 13 }}>
+                  No subagents dispatched in this session
+                </div>
+              ) : (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#E91E63', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>🤖</span> Subagents dispatched ({analysis.subagents.length})
+                  </div>
+                  {analysis.subagents.map((desc, i) => (
+                    <div key={i} style={{
+                      padding: '12px 16px', borderRadius: 8, background: '#FCE4EC',
+                      border: '1px solid #F8BBD0', marginBottom: 8
+                    }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#880E4F', marginBottom: 4 }}>Agent #{i + 1}</div>
+                      <div style={{ fontSize: 12, color: '#C2185B', fontFamily: 'Figtree', lineHeight: 1.5 }}>{desc}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!loading && turns.length === 0 && tab === 'Timeline' && (
             <div style={{ color: '#9baabf', textAlign: 'center', paddingTop: 40 }}>No turns found</div>
           )}
         </div>

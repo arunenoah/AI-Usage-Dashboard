@@ -48,11 +48,12 @@ func (a *Adapter) Parse(path string) (*models.Session, error) {
 	projectDir := decodeProjectDir(filepath.Dir(path))
 
 	session := &models.Session{
-		ID:         sessionID,
-		FilePath:   path,
-		ProjectDir: projectDir,
-		Source:     "claude-code",
-		ToolCounts: make(map[string]int),
+		ID:          sessionID,
+		FilePath:    path,
+		ProjectDir:  projectDir,
+		Source:      "claude-code",
+		ToolCounts:  make(map[string]int),
+		ToolSamples: make(map[string][]string),
 	}
 
 	scanner := bufio.NewScanner(f)
@@ -108,6 +109,13 @@ func (a *Adapter) Parse(path string) (*models.Session, error) {
 				for _, c := range entry.Message.Content {
 					if c.Type == "tool_use" && c.Name != "" {
 						session.ToolCounts[c.Name]++
+						// Capture sample inputs (up to 5 per tool)
+						if len(session.ToolSamples[c.Name]) < 5 {
+							sample := extractToolSample(c.Name, c.Input)
+							if sample != "" {
+								session.ToolSamples[c.Name] = append(session.ToolSamples[c.Name], sample)
+							}
+						}
 					}
 				}
 			}
@@ -135,8 +143,18 @@ func (a *Adapter) Parse(path string) (*models.Session, error) {
 	return session, scanner.Err()
 }
 
-// ParseTurns returns the full turn-by-turn detail for a session
+// ParseTurns returns the full turn-by-turn detail for a session.
+// maxTextLen controls truncation (0 = unlimited).
 func (a *Adapter) ParseTurns(path string) ([]models.TurnEntry, error) {
+	return a.parseTurns(path, 500)
+}
+
+// ParseTurnsFull returns turns with no text truncation (for conversation detail view).
+func (a *Adapter) ParseTurnsFull(path string) ([]models.TurnEntry, error) {
+	return a.parseTurns(path, 0)
+}
+
+func (a *Adapter) parseTurns(path string, maxTextLen int) ([]models.TurnEntry, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", path, err)
@@ -149,11 +167,20 @@ func (a *Adapter) ParseTurns(path string) ([]models.TurnEntry, error) {
 
 	// We need to pair system.turn_duration with the preceding assistant turn
 	lastAssistantIdx := -1
+	seenUUIDs := make(map[string]bool) // deduplicate duplicate JSONL entries
 
 	for scanner.Scan() {
 		var entry models.RawEntry
 		if err := json.Unmarshal(scanner.Bytes(), &entry); err != nil {
 			continue
+		}
+		// Skip duplicates (assistant turns appear twice in JSONL)
+		if entry.UUID != "" {
+			key := entry.Type + ":" + entry.UUID
+			if seenUUIDs[key] {
+				continue
+			}
+			seenUUIDs[key] = true
 		}
 
 		switch entry.Type {
@@ -164,7 +191,7 @@ func (a *Adapter) ParseTurns(path string) ([]models.TurnEntry, error) {
 			var text string
 			for _, c := range entry.Message.Content {
 				if c.Type == "text" && c.Text != "" {
-					text = truncate(c.Text, 500)
+					text = truncateMaybe(c.Text, maxTextLen)
 					break
 				}
 			}
@@ -184,23 +211,48 @@ func (a *Adapter) ParseTurns(path string) ([]models.TurnEntry, error) {
 			}
 			var text string
 			var toolCalls []string
+			toolInputs := make(map[string]string)
 			for _, c := range entry.Message.Content {
 				if c.Type == "text" && c.Text != "" && text == "" {
-					text = truncate(c.Text, 500)
+					text = truncateMaybe(c.Text, maxTextLen)
 				}
 				if c.Type == "thinking" && c.Thinking != "" && text == "" {
-					text = "[thinking] " + truncate(c.Thinking, 200)
+					text = "[thinking] " + truncateMaybe(c.Thinking, 200)
 				}
 				if c.Type == "tool_use" && c.Name != "" {
 					toolCalls = append(toolCalls, c.Name)
+					// Extract key input param per tool type
+					if inp, ok := c.Input.(map[string]any); ok {
+						switch c.Name {
+						case "Write", "Read", "Edit", "NotebookEdit":
+							if v, ok := inp["file_path"].(string); ok {
+								toolInputs[c.Name+":"+v] = v
+							}
+						case "Bash":
+							if v, ok := inp["command"].(string); ok {
+								toolInputs[c.Name] = truncate(v, 80)
+							}
+						case "Agent":
+							if v, ok := inp["description"].(string); ok {
+								toolInputs["Agent:"+v] = v
+							} else if v, ok := inp["prompt"].(string); ok {
+								toolInputs["Agent"] = truncate(v, 80)
+							}
+						case "Grep", "Glob":
+							if v, ok := inp["pattern"].(string); ok {
+								toolInputs[c.Name] = v
+							}
+						}
+					}
 				}
 			}
 			turn := models.TurnEntry{
-				Role:      "assistant",
-				Text:      text,
-				ToolCalls: toolCalls,
-				Model:     entry.Message.Model,
-				Timestamp: entry.Timestamp,
+				Role:       "assistant",
+				Text:       text,
+				ToolCalls:  toolCalls,
+				ToolInputs: toolInputs,
+				Model:      entry.Message.Model,
+				Timestamp:  entry.Timestamp,
 			}
 			if entry.Message.Usage != nil {
 				turn.Usage = entry.Message.Usage
@@ -218,12 +270,63 @@ func (a *Adapter) ParseTurns(path string) ([]models.TurnEntry, error) {
 	return turns, scanner.Err()
 }
 
+func extractToolSample(name string, input any) string {
+	inp, ok := input.(map[string]any)
+	if !ok {
+		return ""
+	}
+	switch name {
+	case "Write", "Read", "Edit", "NotebookEdit":
+		if v, ok := inp["file_path"].(string); ok {
+			return v
+		}
+	case "Bash":
+		if v, ok := inp["command"].(string); ok {
+			return truncate(v, 80)
+		}
+	case "Agent":
+		if v, ok := inp["description"].(string); ok {
+			return v
+		}
+		if v, ok := inp["prompt"].(string); ok {
+			return truncate(v, 80)
+		}
+	case "Grep":
+		pattern, _ := inp["pattern"].(string)
+		path, _ := inp["path"].(string)
+		if path != "" {
+			return pattern + " in " + path
+		}
+		return pattern
+	case "Glob":
+		if v, ok := inp["pattern"].(string); ok {
+			return v
+		}
+	case "WebFetch", "WebSearch":
+		if v, ok := inp["url"].(string); ok {
+			return v
+		}
+		if v, ok := inp["query"].(string); ok {
+			return v
+		}
+	}
+	return ""
+}
+
 func decodeProjectDir(encoded string) string {
 	base := filepath.Base(encoded)
 	if strings.HasPrefix(base, "-") {
 		base = base[1:]
 	}
 	return "/" + strings.ReplaceAll(base, "-", "/")
+}
+
+// truncateMaybe truncates only when n > 0; n == 0 means unlimited.
+func truncateMaybe(s string, n int) string {
+	if n <= 0 {
+		return s
+	}
+	return truncate(s, n)
 }
 
 func truncate(s string, n int) string {

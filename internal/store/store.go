@@ -70,39 +70,74 @@ func (s *Store) Sessions() []*models.Session {
 }
 
 func (s *Store) Stats() models.Stats {
-	sessions := s.Sessions()
-	if len(sessions) == 0 {
-		return models.Stats{ToolCounts: make(map[string]int), Daily: []models.DailyStats{}}
+	return s.StatsForRange(time.Time{}, time.Time{})
+}
+
+// StatsForDays returns stats filtered to the last N days (0 = all time).
+func (s *Store) StatsForDays(days int) models.Stats {
+	if days <= 0 {
+		return s.StatsForRange(time.Time{}, time.Time{})
+	}
+	from := time.Now().Truncate(24 * time.Hour).AddDate(0, 0, -(days - 1))
+	return s.StatsForRange(from, time.Time{})
+}
+
+// StatsForRange returns stats for sessions between from and to (zero = unbounded).
+func (s *Store) StatsForRange(from, to time.Time) models.Stats {
+	allSessions := s.Sessions()
+	if len(allSessions) == 0 {
+		return models.Stats{ToolCounts: make(map[string]int), Daily: []models.DailyStats{}, Projects: []string{}}
 	}
 
-	stats := models.Stats{
+	sessions := allSessions
+	if !from.IsZero() || !to.IsZero() {
+		sessions = make([]*models.Session, 0, len(allSessions))
+		for _, sess := range allSessions {
+			if !from.IsZero() && sess.StartTime.Before(from) {
+				continue
+			}
+			if !to.IsZero() && sess.StartTime.After(to) {
+				continue
+			}
+			sessions = append(sessions, sess)
+		}
+	}
+
+	st := models.Stats{
 		TotalSessions: len(sessions),
+		TotalAllSessions: len(allSessions),
 		ToolCounts:    make(map[string]int),
 	}
 
-	// Active session: modified within last 30 minutes
-	if len(sessions) > 0 && time.Since(sessions[0].EndTime) < 30*time.Minute {
-		stats.ActiveSession = sessions[0]
+	// Active session: modified within last 30 minutes (use all sessions for live detection)
+	if len(allSessions) > 0 && time.Since(allSessions[0].EndTime) < 30*time.Minute {
+		st.ActiveSession = allSessions[0]
 	}
 
+	// Unique projects
+	projectSet := make(map[string]struct{})
 	dailyMap := make(map[string]*models.DailyStats)
 
 	for _, sess := range sessions {
-		stats.TotalInputTokens += sess.TotalUsage.InputTokens
-		stats.TotalOutputTokens += sess.TotalUsage.OutputTokens
-		stats.TotalCacheReadTokens += int64(sess.TotalUsage.CacheReadInputTokens)
-		stats.TotalCacheCreationTokens += sess.TotalUsage.CacheCreationInputTokens
+		st.TotalInputTokens += sess.TotalUsage.InputTokens
+		st.TotalOutputTokens += sess.TotalUsage.OutputTokens
+		st.TotalCacheReadTokens += int64(sess.TotalUsage.CacheReadInputTokens)
+		st.TotalCacheCreationTokens += sess.TotalUsage.CacheCreationInputTokens
 
 		cost := tokenCost(sess.TotalUsage)
-		stats.TotalCostUSD += cost
+		st.TotalCostUSD += cost
 
 		for tool, count := range sess.ToolCounts {
-			stats.ToolCounts[tool] += count
+			st.ToolCounts[tool] += count
+		}
+
+		if sess.ProjectDir != "" {
+			projectSet[sess.ProjectDir] = struct{}{}
 		}
 
 		day := sess.StartTime.Format("2006-01-02")
 		if day == "0001-01-01" {
-			continue // skip zero-time sessions
+			continue
 		}
 		if _, ok := dailyMap[day]; !ok {
 			dailyMap[day] = &models.DailyStats{Date: day}
@@ -117,21 +152,24 @@ func (s *Store) Stats() models.Stats {
 	}
 
 	for _, d := range dailyMap {
-		stats.Daily = append(stats.Daily, *d)
+		st.Daily = append(st.Daily, *d)
 	}
-	sort.Slice(stats.Daily, func(i, j int) bool {
-		return stats.Daily[i].Date < stats.Daily[j].Date
+	sort.Slice(st.Daily, func(i, j int) bool {
+		return st.Daily[i].Date < st.Daily[j].Date
 	})
-	if len(stats.Daily) > 30 {
-		stats.Daily = stats.Daily[len(stats.Daily)-30:]
+
+	for p := range projectSet {
+		st.Projects = append(st.Projects, p)
 	}
+	sort.Strings(st.Projects)
 
 	if len(sessions) > 0 {
-		stats.AvgSessionTokens = (stats.TotalInputTokens + stats.TotalOutputTokens) / len(sessions)
+		st.AvgSessionTokens = (st.TotalInputTokens + st.TotalOutputTokens) / len(sessions)
+		st.AvgSessionCostUSD = math.Round(st.TotalCostUSD/float64(len(sessions))*1000) / 1000
 	}
 
-	stats.TotalCostUSD = math.Round(stats.TotalCostUSD*100) / 100
-	return stats
+	st.TotalCostUSD = math.Round(st.TotalCostUSD*100) / 100
+	return st
 }
 
 func tokenCost(u models.Usage) float64 {
