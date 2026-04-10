@@ -11,10 +11,12 @@ import (
 	"github.com/ai-sessions/ai-sessions/internal/models"
 )
 
+// Correct Claude Sonnet pricing per million tokens
 const (
-	priceInputPerM  = 3.0
-	priceOutputPerM = 15.0
-	priceCachePerM  = 0.3
+	priceInputPerM         = 3.0   // regular input
+	priceOutputPerM        = 15.0  // output (includes thinking)
+	priceCacheReadPerM     = 0.30  // cache read (cheap)
+	priceCacheCreationPerM = 3.75  // cache write (more expensive than input)
 )
 
 type Store struct {
@@ -30,6 +32,12 @@ func (s *Store) Upsert(session *models.Session) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.sessions[session.ID] = session
+}
+
+func (s *Store) Get(id string) *models.Session {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.sessions[id]
 }
 
 func (s *Store) LoadAll(adapter adapters.Adapter) error {
@@ -72,6 +80,7 @@ func (s *Store) Stats() models.Stats {
 		ToolCounts:    make(map[string]int),
 	}
 
+	// Active session: modified within last 30 minutes
 	if len(sessions) > 0 && time.Since(sessions[0].EndTime) < 30*time.Minute {
 		stats.ActiveSession = sessions[0]
 	}
@@ -81,6 +90,8 @@ func (s *Store) Stats() models.Stats {
 	for _, sess := range sessions {
 		stats.TotalInputTokens += sess.TotalUsage.InputTokens
 		stats.TotalOutputTokens += sess.TotalUsage.OutputTokens
+		stats.TotalCacheReadTokens += int64(sess.TotalUsage.CacheReadInputTokens)
+		stats.TotalCacheCreationTokens += sess.TotalUsage.CacheCreationInputTokens
 
 		cost := tokenCost(sess.TotalUsage)
 		stats.TotalCostUSD += cost
@@ -90,13 +101,17 @@ func (s *Store) Stats() models.Stats {
 		}
 
 		day := sess.StartTime.Format("2006-01-02")
+		if day == "0001-01-01" {
+			continue // skip zero-time sessions
+		}
 		if _, ok := dailyMap[day]; !ok {
 			dailyMap[day] = &models.DailyStats{Date: day}
 		}
 		d := dailyMap[day]
 		d.InputTokens += sess.TotalUsage.InputTokens
 		d.OutputTokens += sess.TotalUsage.OutputTokens
-		d.CacheRead += sess.TotalUsage.CacheReadInputTokens
+		d.CacheRead += int64(sess.TotalUsage.CacheReadInputTokens)
+		d.CacheCreation += sess.TotalUsage.CacheCreationInputTokens
 		d.Sessions++
 		d.EstCostUSD += cost
 	}
@@ -122,5 +137,6 @@ func (s *Store) Stats() models.Stats {
 func tokenCost(u models.Usage) float64 {
 	return float64(u.InputTokens)/1e6*priceInputPerM +
 		float64(u.OutputTokens)/1e6*priceOutputPerM +
-		float64(u.CacheReadInputTokens)/1e6*priceCachePerM
+		float64(u.CacheReadInputTokens)/1e6*priceCacheReadPerM +
+		float64(u.CacheCreationInputTokens)/1e6*priceCacheCreationPerM
 }

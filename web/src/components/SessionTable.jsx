@@ -45,7 +45,8 @@ function calcCost(usage) {
   if (!usage) return 0
   return usage.input_tokens / 1e6 * 3 +
          usage.output_tokens / 1e6 * 15 +
-         (usage.cache_read_input_tokens || 0) / 1e6 * 0.3
+         (usage.cache_read_input_tokens || 0) / 1e6 * 0.30 +
+         (usage.cache_creation_input_tokens || 0) / 1e6 * 3.75
 }
 
 function calcScore(session) {
@@ -61,7 +62,7 @@ function calcScore(session) {
   return Math.max(20, Math.min(99, score))
 }
 
-export default function SessionTable({ sessions = [], total = 0 }) {
+export default function SessionTable({ sessions = [], total = 0, onSessionClick }) {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState('All')
 
@@ -140,9 +141,11 @@ export default function SessionTable({ sessions = [], total = 0 }) {
             {filtered.slice(0, 8).map(s => {
               const cost = calcCost(s.total_usage)
               const score = calcScore(s)
-              const branch = s.project_dir?.split('/').pop() || 'main'
+              const branch = s.git_branch || s.project_dir?.split('/').pop() || 'main'
               return (
-                <tr key={s.id} style={{ cursor: 'pointer' }}
+                <tr key={s.id}
+                  onClick={() => onSessionClick?.(s.id)}
+                  style={{ cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#fafbfc'}
                   onMouseLeave={e => e.currentTarget.style.background = ''}>
                   <td style={{ padding: '10px 10px' }}>{toolBadge(s.source)}</td>

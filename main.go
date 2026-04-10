@@ -39,7 +39,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	h := &api.Handler{Store: sessionStore}
+	h := &api.Handler{Store: sessionStore, Adapter: adapter}
 	h.Register(mux)
 	mux.HandleFunc("/ws", hub.ServeWS)
 
