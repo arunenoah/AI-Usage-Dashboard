@@ -1,10 +1,9 @@
-import React from 'react'
 import Icon from '../components/Icon.jsx'
 
 const ADAPTERS = [
   { name: 'Claude Code', icon: 'activity', status: 'active', path: '~/.claude/projects/' },
   { name: 'Cursor', icon: 'laptop', status: 'coming-soon', path: '~/.cursor/logs/' },
-  { name: 'GitHub Copilot', icon: 'globe', status: 'coming-soon', path: '~/.config/github-copilot/' },
+  { name: 'GitHub Copilot', icon: 'globe', status: 'active', path: '%APPDATA%\\Code\\User\\workspaceStorage\\' },
   { name: 'Windsurf', icon: 'zap', status: 'coming-soon', path: '~/.windsurf/sessions/' },
 ]
 

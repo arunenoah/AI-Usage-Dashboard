@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
 function fmtMs(ms) {
   if (!ms) return null
@@ -60,7 +60,7 @@ function analyzeSession(turns) {
 
 const TABS = ['Timeline', 'Files', 'Subagents']
 
-export default function SessionDetail({ sessionId, onClose }) {
+export default function SessionDetail({ sessionId, onClose, turnsApiBase = '/api/sessions' }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('Timeline')
@@ -69,7 +69,7 @@ export default function SessionDetail({ sessionId, onClose }) {
     if (!sessionId) return
     setLoading(true)
     setTab('Timeline')
-    fetch(`/api/sessions/${sessionId}/turns`)
+    fetch(`${turnsApiBase}/${sessionId}/turns`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
