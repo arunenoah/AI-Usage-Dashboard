@@ -1,0 +1,9 @@
+# Binary
+ai-sessions
+
+# Node
+web/node_modules/
+
+# macOS
+.DS_Store
+**/.DS_Store

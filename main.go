@@ -39,10 +39,8 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-
 	h := &api.Handler{Store: sessionStore}
 	h.Register(mux)
-
 	mux.HandleFunc("/ws", hub.ServeWS)
 
 	distFS, err := fs.Sub(webDist, "web/dist")
