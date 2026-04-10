@@ -2,6 +2,34 @@ package models
 
 import "time"
 
+// InsightDimension is one scored dimension in the prompt quality breakdown
+type InsightDimension struct {
+	Label string `json:"label"`
+	Score int    `json:"score"`
+}
+
+// Insight is one actionable finding
+type Insight struct {
+	Type   string `json:"type"`   // "warning" | "info" | "success" | "error"
+	Title  string `json:"title"`
+	Text   string `json:"text"`
+	Impact string `json:"impact,omitempty"`
+}
+
+// InsightsResponse is the full response for /api/insights
+type InsightsResponse struct {
+	Score      int                `json:"score"`
+	Dimensions []InsightDimension `json:"dimensions"`
+	Insights   []Insight          `json:"insights"`
+	// Raw metrics (for tooltips / detail)
+	CachePct        float64 `json:"cache_pct"`
+	AvgTurns        float64 `json:"avg_turns"`
+	HighCtxSessions int     `json:"high_ctx_sessions"`
+	SpecificPct     float64 `json:"specific_pct"`
+	TotalSessions   int     `json:"total_sessions"`
+	AvgPromptLen    float64 `json:"avg_prompt_len"`
+}
+
 // RawEntry is one line from a Claude Code JSONL session file
 type RawEntry struct {
 	Type       string      `json:"type"`

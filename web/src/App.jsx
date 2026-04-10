@@ -9,7 +9,7 @@ export default function App() {
   return (
     <div className="layout">
       <Sidebar />
-      <main className="main">
+      <main className="main" id="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/sessions" element={<Sessions />} />

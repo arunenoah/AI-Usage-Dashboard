@@ -245,7 +245,7 @@ export default function Dashboard() {
           onSessionClick={setSelectedSession}
           projects={stats.projects || []}
         />
-        <PromptScore score={74} />
+        <PromptScore days={filter.from ? 90 : (filter.days || 30)} />
       </div>
 
       {/* Tool usage + Hourly activity */}

@@ -6,7 +6,7 @@ export default function Sessions() {
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    fetch('/api/sessions?limit=200')
+    fetch('/api/sessions?limit=2000')
       .then(r => r.json())
       .then(d => { setSessions(d.sessions || []); setTotal(d.total || 0) })
       .catch(() => {})

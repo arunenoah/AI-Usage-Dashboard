@@ -3,6 +3,7 @@ package api
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"os"
@@ -30,6 +31,7 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/system", h.getSystemInfo)
 	mux.HandleFunc("/api/history", h.getHistory)
 	mux.HandleFunc("/api/conversations", h.getConversations)
+	mux.HandleFunc("/api/insights", h.getInsights)
 	mux.HandleFunc("/api/image", h.serveImage)
 	mux.HandleFunc("/api/health", h.health)
 }
@@ -80,7 +82,7 @@ func (h *Handler) getSessions(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
-	if limit < 1 || limit > 500 {
+	if limit < 1 || limit > 5000 {
 		limit = 20
 	}
 	start := (page - 1) * limit
@@ -632,6 +634,243 @@ func isSystemInjection(text string) bool {
 		}
 	}
 	return false
+}
+
+// getInsights computes real prompt quality metrics from session data
+// GET /api/insights?days=30
+func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	days, _ := strconv.Atoi(r.URL.Query().Get("days"))
+	if days <= 0 {
+		days = 30
+	}
+
+	allSessions := h.Store.Sessions()
+	cutoff := time.Now().AddDate(0, 0, -days)
+	var sessions []*models.Session
+	for _, s := range allSessions {
+		if s.StartTime.After(cutoff) {
+			sessions = append(sessions, s)
+		}
+	}
+	if len(sessions) == 0 {
+		sessions = allSessions // fallback to all if nothing recent
+	}
+	if len(sessions) == 0 {
+		writeJSON(w, models.InsightsResponse{Score: 50})
+		return
+	}
+
+	// ── Specificity ──────────────────────────────────────────────────────
+	// % of first prompts that reference specific files, paths, or code
+	specificCount := 0
+	for _, s := range sessions {
+		if isSpecificPrompt(s.FirstPrompt) {
+			specificCount++
+		}
+	}
+	specificPct := float64(specificCount) / float64(len(sessions)) * 100
+	specificScore := clampScore(int(specificPct))
+
+	// ── Cache Hit ────────────────────────────────────────────────────────
+	var totalCacheRead, totalFreshInput int64
+	for _, s := range sessions {
+		totalCacheRead += int64(s.TotalUsage.CacheReadInputTokens)
+		totalFreshInput += int64(s.TotalUsage.InputTokens)
+	}
+	cachePct := 0.0
+	if totalCacheRead+totalFreshInput > 0 {
+		cachePct = float64(totalCacheRead) / float64(totalCacheRead+totalFreshInput) * 100
+	}
+	cacheScore := clampScore(int(cachePct))
+
+	// ── Conciseness ──────────────────────────────────────────────────────
+	// Shorter avg first-prompt = more concise (good) — score degrades with length
+	var totalLen int
+	for _, s := range sessions {
+		totalLen += len(s.FirstPrompt)
+	}
+	avgPromptLen := float64(totalLen) / float64(len(sessions))
+	concisenessScore := promptLenToScore(avgPromptLen)
+
+	// ── Session Hygiene ──────────────────────────────────────────────────
+	// % sessions with < 30 user turns (good sessions don't balloon endlessly)
+	goodTurns := 0
+	var totalTurns int
+	highCtxSessions := 0
+	for _, s := range sessions {
+		totalTurns += s.UserTurns
+		if s.UserTurns < 30 {
+			goodTurns++
+		}
+		if s.UserTurns > 50 {
+			highCtxSessions++
+		}
+	}
+	avgTurns := float64(totalTurns) / float64(len(sessions))
+	hygieneScore := clampScore(int(float64(goodTurns) / float64(len(sessions)) * 100))
+
+	// ── Overall Score ────────────────────────────────────────────────────
+	// Weighted: cache (35%) + hygiene (25%) + specificity (25%) + conciseness (15%)
+	overallScore := int(float64(cacheScore)*0.35 + float64(hygieneScore)*0.25 +
+		float64(specificScore)*0.25 + float64(concisenessScore)*0.15)
+	overallScore = clampScore(overallScore)
+
+	// ── Dimensions ───────────────────────────────────────────────────────
+	dimensions := []models.InsightDimension{
+		{Label: "Specificity", Score: specificScore},
+		{Label: "Cache hit", Score: cacheScore},
+		{Label: "Conciseness", Score: concisenessScore},
+		{Label: "Sess. hygiene", Score: hygieneScore},
+	}
+
+	// ── Dynamic Insights ─────────────────────────────────────────────────
+	var insights []models.Insight
+
+	// Cache insight
+	if cachePct < 50 {
+		// Estimate monthly savings if cache improved to 80%
+		estMonthlyCost := float64(totalFreshInput) / 1e6 * 3.0 * (30.0 / float64(days))
+		savingsEst := estMonthlyCost * ((80 - cachePct) / 100)
+		insights = append(insights, models.Insight{
+			Type:   "warning",
+			Title:  "Cache Hit Below Optimal",
+			Text:   fmt.Sprintf("%.0f%% cache hit rate — can reach 80%%+ by keeping system prompts stable between sessions.", cachePct),
+			Impact: fmt.Sprintf("-$%.2f/mo", savingsEst),
+		})
+	} else if cachePct < 70 {
+		insights = append(insights, models.Insight{
+			Type:  "info",
+			Title: "Cache Hit Moderate",
+			Text:  fmt.Sprintf("%.0f%% cache hit rate. Improve by reusing the same working directory and keeping CLAUDE.md stable.", cachePct),
+		})
+	} else {
+		insights = append(insights, models.Insight{
+			Type:  "success",
+			Title: "Excellent Cache Efficiency",
+			Text:  fmt.Sprintf("%.0f%% of tokens served from cache — great job keeping context stable.", cachePct),
+		})
+	}
+
+	// Long sessions insight
+	if highCtxSessions > 0 {
+		insights = append(insights, models.Insight{
+			Type:  "warning",
+			Title: "Long Sessions Detected",
+			Text:  fmt.Sprintf("%d session%s exceeded 50 turns. Use /clear between unrelated tasks to avoid context bloat.", highCtxSessions, pluralS(highCtxSessions)),
+		})
+	} else if avgTurns > 20 {
+		insights = append(insights, models.Insight{
+			Type:  "info",
+			Title: "Session Length Normal",
+			Text:  fmt.Sprintf("Average %.0f turns/session. Consider /clear when switching between unrelated tasks.", avgTurns),
+		})
+	} else {
+		insights = append(insights, models.Insight{
+			Type:  "success",
+			Title: "Session Hygiene Good",
+			Text:  fmt.Sprintf("Average %.0f turns/session — sessions are staying focused and lean.", avgTurns),
+		})
+	}
+
+	// Specificity insight
+	if specificPct < 40 {
+		insights = append(insights, models.Insight{
+			Type:  "info",
+			Title: "Low Prompt Specificity",
+			Text:  fmt.Sprintf("Only %.0f%% of prompts reference specific files or code. Including file paths reduces search overhead.", specificPct),
+		})
+	} else {
+		insights = append(insights, models.Insight{
+			Type:  "success",
+			Title: "Specificity Strong",
+			Text:  fmt.Sprintf("%.0f%% of prompts reference specific files or code — this reduces unnecessary search tool calls.", specificPct),
+		})
+	}
+
+	// Conciseness insight
+	if avgPromptLen > 500 {
+		insights = append(insights, models.Insight{
+			Type:  "info",
+			Title: "Prompts Are Verbose",
+			Text:  fmt.Sprintf("Average first prompt is %.0f chars. Shorter, targeted prompts often get faster, more accurate responses.", avgPromptLen),
+		})
+	}
+
+	writeJSON(w, models.InsightsResponse{
+		Score:           overallScore,
+		Dimensions:      dimensions,
+		Insights:        insights,
+		CachePct:        math.Round(cachePct*10) / 10,
+		AvgTurns:        math.Round(avgTurns*10) / 10,
+		HighCtxSessions: highCtxSessions,
+		SpecificPct:     math.Round(specificPct*10) / 10,
+		TotalSessions:   len(sessions),
+		AvgPromptLen:    math.Round(avgPromptLen),
+	})
+}
+
+// isSpecificPrompt returns true if the prompt references specific code artifacts
+func isSpecificPrompt(text string) bool {
+	if text == "" {
+		return false
+	}
+	lower := strings.ToLower(text)
+	// File extensions
+	for _, ext := range []string{".go", ".js", ".ts", ".tsx", ".jsx", ".py", ".rb", ".php", ".rs", ".java", ".cs", ".cpp", ".c", ".sh", ".yaml", ".yml", ".json", ".sql", ".md"} {
+		if strings.Contains(lower, ext) {
+			return true
+		}
+	}
+	// Path-like patterns (at least one /)
+	if strings.Contains(text, "/") {
+		return true
+	}
+	// Code keywords
+	for _, kw := range []string{"func ", "function ", "class ", "interface ", "struct ", "const ", "import ", "export ", "line "} {
+		if strings.Contains(lower, kw) {
+			return true
+		}
+	}
+	return false
+}
+
+func clampScore(v int) int {
+	if v < 1 {
+		return 1
+	}
+	if v > 99 {
+		return 99
+	}
+	return v
+}
+
+func promptLenToScore(avgLen float64) int {
+	switch {
+	case avgLen <= 60:
+		return 95
+	case avgLen <= 120:
+		return 85
+	case avgLen <= 250:
+		return 75
+	case avgLen <= 450:
+		return 60
+	case avgLen <= 700:
+		return 45
+	default:
+		return 30
+	}
+}
+
+func pluralS(n int) string {
+	if n == 1 {
+		return ""
+	}
+	return "s"
 }
 
 // serveImage serves local image files from ~/.claude/image-cache/
