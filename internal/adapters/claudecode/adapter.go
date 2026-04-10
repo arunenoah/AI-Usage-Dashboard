@@ -211,7 +211,8 @@ func (a *Adapter) parseTurns(path string, maxTextLen int) ([]models.TurnEntry, e
 			}
 			var text string
 			var toolCalls []string
-			toolInputs := make(map[string]string)
+			var toolDetails []models.ToolDetail
+			toolInputs := make(map[string]string) // kept for backwards compat
 			for _, c := range entry.Message.Content {
 				if c.Type == "text" && c.Text != "" && text == "" {
 					text = truncateMaybe(c.Text, maxTextLen)
@@ -221,38 +222,61 @@ func (a *Adapter) parseTurns(path string, maxTextLen int) ([]models.TurnEntry, e
 				}
 				if c.Type == "tool_use" && c.Name != "" {
 					toolCalls = append(toolCalls, c.Name)
-					// Extract key input param per tool type
+					// Extract key input per tool — append to ordered slice (no key collision)
+					detail := models.ToolDetail{Tool: c.Name}
 					if inp, ok := c.Input.(map[string]any); ok {
 						switch c.Name {
 						case "Write", "Read", "Edit", "NotebookEdit":
 							if v, ok := inp["file_path"].(string); ok {
+								detail.Input = v
 								toolInputs[c.Name+":"+v] = v
 							}
 						case "Bash":
 							if v, ok := inp["command"].(string); ok {
-								toolInputs[c.Name] = truncate(v, 80)
+								detail.Input = truncate(v, 120)
+								toolInputs[c.Name] = detail.Input
 							}
 						case "Agent":
 							if v, ok := inp["description"].(string); ok {
+								detail.Input = v
 								toolInputs["Agent:"+v] = v
 							} else if v, ok := inp["prompt"].(string); ok {
-								toolInputs["Agent"] = truncate(v, 80)
+								detail.Input = truncate(v, 120)
+								toolInputs["Agent"] = detail.Input
 							}
-						case "Grep", "Glob":
+						case "Grep":
+							pattern, _ := inp["pattern"].(string)
+							path, _ := inp["path"].(string)
+							if path != "" {
+								detail.Input = pattern + " in " + path
+							} else {
+								detail.Input = pattern
+							}
+							toolInputs[c.Name] = detail.Input
+						case "Glob":
 							if v, ok := inp["pattern"].(string); ok {
+								detail.Input = v
 								toolInputs[c.Name] = v
+							}
+						case "WebFetch", "WebSearch":
+							if v, ok := inp["url"].(string); ok {
+								detail.Input = v
+							} else if v, ok := inp["query"].(string); ok {
+								detail.Input = v
 							}
 						}
 					}
+					toolDetails = append(toolDetails, detail)
 				}
 			}
 			turn := models.TurnEntry{
-				Role:       "assistant",
-				Text:       text,
-				ToolCalls:  toolCalls,
-				ToolInputs: toolInputs,
-				Model:      entry.Message.Model,
-				Timestamp:  entry.Timestamp,
+				Role:        "assistant",
+				Text:        text,
+				ToolCalls:   toolCalls,
+				ToolInputs:  toolInputs,
+				ToolDetails: toolDetails,
+				Model:       entry.Message.Model,
+				Timestamp:   entry.Timestamp,
 			}
 			if entry.Message.Usage != nil {
 				turn.Usage = entry.Message.Usage

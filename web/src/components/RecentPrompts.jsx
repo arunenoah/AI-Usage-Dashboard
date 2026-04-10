@@ -117,6 +117,51 @@ function ExpandableText({ text, style }) {
   )
 }
 
+// ────────── ToolDetailList ──────────
+function ToolDetailList({ details }) {
+  // Group by tool preserving order of first occurrence
+  const grouped = []
+  const seen = {}
+  for (const d of details) {
+    if (!seen[d.tool]) {
+      seen[d.tool] = { tool: d.tool, inputs: [] }
+      grouped.push(seen[d.tool])
+    }
+    if (d.input) seen[d.tool].inputs.push(d.input)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {grouped.map((g, i) => {
+        const color = TOOL_COLOR[g.tool] || '#9baabf'
+        return (
+          <div key={i} style={{ borderRadius: 8, border: `1px solid ${color}22`, overflow: 'hidden' }}>
+            {/* Tool header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 12px', background: color + '12' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, fontFamily: 'JetBrains Mono', color }}>{g.tool}</span>
+              <span style={{ fontSize: 10, color: '#9baabf', marginLeft: 'auto' }}>{g.inputs.length} call{g.inputs.length !== 1 ? 's' : ''}</span>
+            </div>
+            {/* Input list */}
+            {g.inputs.length > 0 && (
+              <div style={{ padding: '6px 12px 8px', display: 'flex', flexDirection: 'column', gap: 4, background: '#fff' }}>
+                {g.inputs.map((inp, j) => (
+                  <div key={j} style={{
+                    fontSize: 11, fontFamily: 'JetBrains Mono', color: '#344767',
+                    background: '#f8f9fc', borderRadius: 4, padding: '3px 8px',
+                    wordBreak: 'break-all', lineHeight: 1.5,
+                  }}>
+                    {inp}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ────────── ConversationPanel (right slide-over) ──────────
 function ConversationPanel({ pair, onClose }) {
   const u = pair?.usage
@@ -273,24 +318,28 @@ function ConversationPanel({ pair, onClose }) {
           </div>
 
           {/* Tools used */}
-          {tools.length > 0 && (
+          {(pair.tool_details?.length > 0 || tools.length > 0) && (
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>
                 Tools Used ({pair.tool_calls?.length} calls)
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {tools.map((t, i) => {
-                  const cnt = (pair.tool_calls || []).filter(x => x === t).length
-                  return (
-                    <span key={i} style={{
-                      padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
-                      background: (TOOL_COLOR[t] || '#9baabf') + '18',
-                      color: TOOL_COLOR[t] || '#9baabf',
-                      fontFamily: 'JetBrains Mono',
-                    }}>{t}{cnt > 1 ? ` ×${cnt}` : ''}</span>
-                  )
-                })}
-              </div>
+              {pair.tool_details?.length > 0 ? (
+                <ToolDetailList details={pair.tool_details} />
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {tools.map((t, i) => {
+                    const cnt = (pair.tool_calls || []).filter(x => x === t).length
+                    return (
+                      <span key={i} style={{
+                        padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
+                        background: (TOOL_COLOR[t] || '#9baabf') + '18',
+                        color: TOOL_COLOR[t] || '#9baabf',
+                        fontFamily: 'JetBrains Mono',
+                      }}>{t}{cnt > 1 ? ` ×${cnt}` : ''}</span>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -300,31 +349,32 @@ function ConversationPanel({ pair, onClose }) {
 }
 
 // ────────── Main RecentPrompts Component ──────────
+const PAGE_SIZE = 20
+
 export default function RecentPrompts({ onSessionClick }) {
   const [pairs, setPairs] = useState([])
   const [total, setTotal] = useState(0)
-  const [period, setPeriod] = useState('week')
+  const [totalPages, setTotalPages] = useState(1)
+  const [period, setPeriod] = useState('all')
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 20
 
   useEffect(() => {
     setLoading(true)
     setSelected(null)
-    setPage(1)
-    fetch(`/api/conversations?period=${period}&limit=300`)
+    fetch(`/api/conversations?period=${period}&limit=${PAGE_SIZE}&page=${page}`)
       .then(r => r.json())
       .then(d => {
         setPairs(d.pairs || [])
         setTotal(d.total || 0)
+        setTotalPages(d.total_pages || 1)
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [period])
+  }, [period, page])
 
-  const paged = pairs.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const totalPages = Math.ceil(pairs.length / PAGE_SIZE)
+  const paged = pairs
 
   return (
     <>
@@ -339,7 +389,7 @@ export default function RecentPrompts({ onSessionClick }) {
           </div>
           <div style={{ display: 'flex', gap: 3, background: '#f0f2f5', borderRadius: 20, padding: '3px' }}>
             {PERIODS.map(p => (
-              <button key={p.value} onClick={() => setPeriod(p.value)} style={{
+              <button key={p.value} onClick={() => { setPeriod(p.value); setPage(1) }} style={{
                 padding: '4px 12px', borderRadius: 16, border: 'none', cursor: 'pointer',
                 fontSize: 11, fontWeight: 700,
                 background: period === p.value ? '#1A73E8' : 'transparent',
@@ -483,7 +533,7 @@ export default function RecentPrompts({ onSessionClick }) {
               style={{ padding: '4px 12px', border: '1px solid #f0f2f5', borderRadius: 6, background: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer', color: page === 1 ? '#9baabf' : '#344767', fontSize: 12 }}>
               ‹ Prev
             </button>
-            <span style={{ fontSize: 12, color: '#7b809a' }}>Page {page} of {totalPages} · {pairs.length} total</span>
+            <span style={{ fontSize: 12, color: '#7b809a' }}>Page {page} of {totalPages} · {total} total</span>
             <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
               style={{ padding: '4px 12px', border: '1px solid #f0f2f5', borderRadius: 6, background: '#fff', cursor: page === totalPages ? 'not-allowed' : 'pointer', color: page === totalPages ? '#9baabf' : '#344767', fontSize: 12 }}>
               Next ›

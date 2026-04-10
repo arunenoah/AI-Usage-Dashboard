@@ -93,20 +93,27 @@ type HistoryEntry struct {
 	Project   string `json:"project"`
 }
 
+// ToolDetail holds one tool invocation with its key input
+type ToolDetail struct {
+	Tool  string `json:"tool"`
+	Input string `json:"input,omitempty"`
+}
+
 // ConversationPair is a matched user→assistant turn pair
 type ConversationPair struct {
-	SessionID  string    `json:"session_id"`
-	ProjectDir string    `json:"project_dir"`
-	GitBranch  string    `json:"git_branch"`
-	Model      string    `json:"model"`
-	UserText   string    `json:"user_text"`
-	AssistText string    `json:"assist_text"`
-	ToolCalls  []string  `json:"tool_calls,omitempty"`
-	Usage      *Usage    `json:"usage,omitempty"`
-	DurationMs int64     `json:"duration_ms,omitempty"`
-	Timestamp  time.Time `json:"timestamp"`
-	ContextPct float64   `json:"context_pct"` // (input+cache_read)/200k*100
-	Cost       float64   `json:"cost"`
+	SessionID   string       `json:"session_id"`
+	ProjectDir  string       `json:"project_dir"`
+	GitBranch   string       `json:"git_branch"`
+	Model       string       `json:"model"`
+	UserText    string       `json:"user_text"`
+	AssistText  string       `json:"assist_text"`
+	ToolCalls   []string     `json:"tool_calls,omitempty"`
+	ToolDetails []ToolDetail `json:"tool_details,omitempty"`
+	Usage       *Usage       `json:"usage,omitempty"`
+	DurationMs  int64        `json:"duration_ms,omitempty"`
+	Timestamp   time.Time    `json:"timestamp"`
+	ContextPct  float64      `json:"context_pct"` // (input+cache_read)/200k*100
+	Cost        float64      `json:"cost"`
 }
 
 // ModelStats holds token usage for one model
@@ -128,14 +135,15 @@ type TodoItem struct {
 
 // TurnEntry is one turn in a session (user or assistant)
 type TurnEntry struct {
-	Role       string            `json:"role"`
-	Text       string            `json:"text"`       // user message or assistant text (truncated 500 chars)
-	ToolCalls  []string          `json:"tool_calls"` // tool names used
-	ToolInputs map[string]string `json:"tool_inputs,omitempty"` // tool name → key input param (file path, command, etc.)
-	Usage      *Usage            `json:"usage,omitempty"`
-	DurationMs int64             `json:"duration_ms,omitempty"`
-	Model      string            `json:"model,omitempty"`
-	Timestamp  time.Time         `json:"timestamp"`
+	Role        string            `json:"role"`
+	Text        string            `json:"text"`         // user message or assistant text (truncated 500 chars)
+	ToolCalls   []string          `json:"tool_calls"`   // tool names used
+	ToolInputs  map[string]string `json:"tool_inputs,omitempty"` // legacy: tool name → key input param
+	ToolDetails []ToolDetail      `json:"tool_details,omitempty"` // ordered list of {tool, input} per call
+	Usage       *Usage            `json:"usage,omitempty"`
+	DurationMs  int64             `json:"duration_ms,omitempty"`
+	Model       string            `json:"model,omitempty"`
+	Timestamp   time.Time         `json:"timestamp"`
 }
 
 // DailyStats aggregates token/cost data per day

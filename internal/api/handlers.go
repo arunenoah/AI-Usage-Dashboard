@@ -444,8 +444,12 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 
 	period := r.URL.Query().Get("period")
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit < 1 || limit > 500 {
-		limit = 80
+	if limit < 1 || limit > 10000 {
+		limit = 500
+	}
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	if page < 1 {
+		page = 1
 	}
 
 	var cutoff time.Time
@@ -504,6 +508,7 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 			// and accumulate tool calls and usage across all cycles.
 			var assistTurn *models.TurnEntry
 			var allToolCalls []string
+			var allToolDetails []models.ToolDetail
 			// Accumulate real tokens: sum fresh input+output, but use LAST turn's cache snapshot for context %
 			var sumInput, sumOutput, sumCacheWrite int
 			var lastCacheRead int // cache_read from the final assistant turn = context depth at end
@@ -517,6 +522,7 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 					lastJ = j
 					t := turns[j]
 					allToolCalls = append(allToolCalls, t.ToolCalls...)
+					allToolDetails = append(allToolDetails, t.ToolDetails...)
 					if t.Usage != nil {
 						sumInput += t.Usage.InputTokens
 						sumOutput += t.Usage.OutputTokens
@@ -536,14 +542,15 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 			i = lastJ
 
 			pair := models.ConversationPair{
-				SessionID:  sess.ID,
-				ProjectDir: sess.ProjectDir,
-				GitBranch:  sess.GitBranch,
-				Model:      sess.Model,
-				UserText:   userTurn.Text,
-				Timestamp:  userTurn.Timestamp,
-				ToolCalls:  allToolCalls,
-				DurationMs: maxDurationMs,
+				SessionID:   sess.ID,
+				ProjectDir:  sess.ProjectDir,
+				GitBranch:   sess.GitBranch,
+				Model:       sess.Model,
+				UserText:    userTurn.Text,
+				Timestamp:   userTurn.Timestamp,
+				ToolCalls:   allToolCalls,
+				ToolDetails: allToolDetails,
+				DurationMs:  maxDurationMs,
 			}
 			if assistTurn != nil {
 				pair.AssistText = assistTurn.Text
@@ -572,10 +579,6 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 			}
 			pairs = append(pairs, pair)
 		}
-
-		if len(pairs) >= limit*3 { // over-collect then trim
-			break
-		}
 	}
 
 	// Sort newest first
@@ -584,14 +587,23 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 	})
 
 	total := len(pairs)
-	if len(pairs) > limit {
-		pairs = pairs[:limit]
+
+	// Server-side pagination
+	start := (page - 1) * limit
+	if start >= total {
+		start = total
+	}
+	end := start + limit
+	if end > total {
+		end = total
 	}
 
 	writeJSON(w, map[string]any{
-		"pairs":  pairs,
-		"total":  total,
-		"period": period,
+		"pairs":       pairs[start:end],
+		"total":       total,
+		"period":      period,
+		"page":        page,
+		"total_pages": (total + limit - 1) / limit,
 	})
 }
 
