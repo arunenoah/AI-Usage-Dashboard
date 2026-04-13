@@ -654,8 +654,8 @@ func isSystemInjection(text string) bool {
 	return false
 }
 
-// getInsights computes real prompt quality metrics from session data
-// GET /api/insights?days=30
+// getInsights computes token-efficiency metrics, tiers, and triggers Haiku analysis.
+// GET /api/insights?days=30&refresh=1
 func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -666,6 +666,7 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	if days <= 0 {
 		days = 30
 	}
+	forceRefresh := r.URL.Query().Get("refresh") == "1"
 
 	allSessions := h.Store.Sessions()
 	cutoff := time.Now().AddDate(0, 0, -days)
@@ -676,15 +677,40 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if len(sessions) == 0 {
-		sessions = allSessions // fallback to all if nothing recent
+		sessions = allSessions
 	}
 	if len(sessions) == 0 {
-		writeJSON(w, models.InsightsResponse{Score: 50})
+		writeJSON(w, models.InsightsResponse{Tier: "Beginner", Score: 25, Dimensions: []models.InsightDimension{}})
 		return
 	}
 
-	// ── Specificity ──────────────────────────────────────────────────────
-	// % of first prompts that reference specific files, paths, or code
+	// ── Output Ratio ─────────────────────────────────────────────────────────
+	// output_tokens / input_tokens — how much work Claude did per token spent
+	var totalInput, totalOutput int64
+	for _, s := range sessions {
+		totalInput += int64(s.TotalUsage.InputTokens)
+		totalOutput += int64(s.TotalUsage.OutputTokens)
+	}
+	outputRatio := 0.0
+	if totalInput > 0 {
+		outputRatio = float64(totalOutput) / float64(totalInput)
+	}
+	outputRatioT := outputRatioTier(outputRatio)
+
+	// ── Prompt Ownership ─────────────────────────────────────────────────────
+	// fresh_input / (fresh_input + cache_read) — how much of input is new content
+	var totalFreshInput, totalCacheRead int64
+	for _, s := range sessions {
+		totalFreshInput += int64(s.TotalUsage.InputTokens)
+		totalCacheRead += int64(s.TotalUsage.CacheReadInputTokens)
+	}
+	ownershipPct := 0.0
+	if totalFreshInput+totalCacheRead > 0 {
+		ownershipPct = float64(totalFreshInput) / float64(totalFreshInput+totalCacheRead) * 100
+	}
+	ownershipT := ownershipTier(ownershipPct)
+
+	// ── Specificity ───────────────────────────────────────────────────────────
 	specificCount := 0
 	for _, s := range sessions {
 		if isSpecificPrompt(s.FirstPrompt) {
@@ -692,143 +718,185 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	specificPct := float64(specificCount) / float64(len(sessions)) * 100
-	specificScore := clampScore(int(specificPct))
+	specificT := specificityTier(specificPct)
 
-	// ── Cache Hit ────────────────────────────────────────────────────────
-	var totalCacheRead, totalFreshInput int64
-	for _, s := range sessions {
-		totalCacheRead += int64(s.TotalUsage.CacheReadInputTokens)
-		totalFreshInput += int64(s.TotalUsage.InputTokens)
-	}
-	cachePct := 0.0
-	if totalCacheRead+totalFreshInput > 0 {
-		cachePct = float64(totalCacheRead) / float64(totalCacheRead+totalFreshInput) * 100
-	}
-	cacheScore := clampScore(int(cachePct))
-
-	// ── Conciseness ──────────────────────────────────────────────────────
-	// Shorter avg first-prompt = more concise (good) — score degrades with length
-	var totalLen int
-	for _, s := range sessions {
-		totalLen += len(s.FirstPrompt)
-	}
-	avgPromptLen := float64(totalLen) / float64(len(sessions))
-	concisenessScore := promptLenToScore(avgPromptLen)
-
-	// ── Session Hygiene ──────────────────────────────────────────────────
-	// % sessions with < 30 user turns (good sessions don't balloon endlessly)
-	goodTurns := 0
+	// ── Session Hygiene ───────────────────────────────────────────────────────
 	var totalTurns int
 	highCtxSessions := 0
 	for _, s := range sessions {
 		totalTurns += s.UserTurns
-		if s.UserTurns < 30 {
-			goodTurns++
-		}
 		if s.UserTurns > 50 {
 			highCtxSessions++
 		}
 	}
 	avgTurns := float64(totalTurns) / float64(len(sessions))
-	hygieneScore := clampScore(int(float64(goodTurns) / float64(len(sessions)) * 100))
+	hygieneT := hygieneTier(avgTurns)
 
-	// ── Overall Score ────────────────────────────────────────────────────
-	// Weighted: cache (35%) + hygiene (25%) + specificity (25%) + conciseness (15%)
-	overallScore := int(float64(cacheScore)*0.35 + float64(hygieneScore)*0.25 +
-		float64(specificScore)*0.25 + float64(concisenessScore)*0.15)
-	overallScore = clampScore(overallScore)
+	// ── Overall Tier (weakest link) ────────────────────────────────────────────
+	minTier := outputRatioT
+	if ownershipT < minTier {
+		minTier = ownershipT
+	}
+	if specificT < minTier {
+		minTier = specificT
+	}
+	if hygieneT < minTier {
+		minTier = hygieneT
+	}
+	overallTier := tierName(minTier)
+	overallScore := tierScore(overallTier)
 
-	// ── Dimensions ───────────────────────────────────────────────────────
+	// ── Dimensions ────────────────────────────────────────────────────────────
+	ratioStr := fmt.Sprintf("%.1f×", outputRatio)
+	ownerStr := fmt.Sprintf("%.0f%%", ownershipPct)
+	specStr := fmt.Sprintf("%.0f%%", specificPct)
+	hygieneStr := fmt.Sprintf("%.1f turns", avgTurns)
+
 	dimensions := []models.InsightDimension{
-		{Label: "Specificity", Score: specificScore},
-		{Label: "Cache hit", Score: cacheScore},
-		{Label: "Conciseness", Score: concisenessScore},
-		{Label: "Sess. hygiene", Score: hygieneScore},
+		{
+			Label: "Output ratio",
+			Score: tierToBarScore(tierName(outputRatioT)),
+			Tier:  tierName(outputRatioT),
+			Value: ratioStr,
+		},
+		{
+			Label: "Prompt ownership",
+			Score: tierToBarScore(tierName(ownershipT)),
+			Tier:  tierName(ownershipT),
+			Value: ownerStr,
+		},
+		{
+			Label: "Specificity",
+			Score: tierToBarScore(tierName(specificT)),
+			Tier:  tierName(specificT),
+			Value: specStr,
+		},
+		{
+			Label: "Session hygiene",
+			Score: tierToBarScore(tierName(hygieneT)),
+			Tier:  tierName(hygieneT),
+			Value: hygieneStr,
+		},
 	}
 
-	// ── Dynamic Insights ─────────────────────────────────────────────────
+	// ── Dynamic Insights ──────────────────────────────────────────────────────
 	var insights []models.Insight
 
-	// Cache insight
-	if cachePct < 50 {
-		// Estimate monthly savings if cache improved to 80%
-		estMonthlyCost := float64(totalFreshInput) / 1e6 * 3.0 * (30.0 / float64(days))
-		savingsEst := estMonthlyCost * ((80 - cachePct) / 100)
+	// Output ratio insight
+	if outputRatioT < 2 {
 		insights = append(insights, models.Insight{
-			Type:   "warning",
-			Title:  "Cache Hit Below Optimal",
-			Text:   fmt.Sprintf("%.0f%% cache hit rate — can reach 80%%+ by keeping system prompts stable between sessions.", cachePct),
-			Impact: fmt.Sprintf("-$%.2f/mo", savingsEst),
-		})
-	} else if cachePct < 70 {
-		insights = append(insights, models.Insight{
-			Type:  "info",
-			Title: "Cache Hit Moderate",
-			Text:  fmt.Sprintf("%.0f%% cache hit rate. Improve by reusing the same working directory and keeping CLAUDE.md stable.", cachePct),
+			Type:  "warning",
+			Title: "Low Output Ratio",
+			Text:  fmt.Sprintf("Claude produces %.1f× your input. Aim for 2×+ by asking for complete implementations rather than explaining what you want step-by-step.", outputRatio),
 		})
 	} else {
 		insights = append(insights, models.Insight{
 			Type:  "success",
-			Title: "Excellent Cache Efficiency",
-			Text:  fmt.Sprintf("%.0f%% of tokens served from cache — great job keeping context stable.", cachePct),
+			Title: "Strong Output Ratio",
+			Text:  fmt.Sprintf("%.1f× output per input token — Claude is doing heavy lifting. Good delegation pattern.", outputRatio),
 		})
 	}
 
-	// Long sessions insight
+	// Ownership insight
+	if ownershipT < 2 {
+		insights = append(insights, models.Insight{
+			Type:  "info",
+			Title: "High Context Overhead",
+			Text:  fmt.Sprintf("Only %.0f%% of tokens are your new content — the rest is repeated context (CLAUDE.md, history). Shorter, focused sessions reduce re-sent context.", ownershipPct),
+		})
+	} else {
+		insights = append(insights, models.Insight{
+			Type:  "success",
+			Title: "Efficient Context Use",
+			Text:  fmt.Sprintf("%.0f%% of input tokens are your new instructions — context overhead is well-managed.", ownershipPct),
+		})
+	}
+
+	// Specificity insight
+	if specificT < 2 {
+		insights = append(insights, models.Insight{
+			Type:  "info",
+			Title: "Low Prompt Specificity",
+			Text:  fmt.Sprintf("%.0f%% of prompts reference specific files or code. Include file paths and function names to cut search overhead.", specificPct),
+		})
+	} else {
+		insights = append(insights, models.Insight{
+			Type:  "success",
+			Title: "Specific Prompts",
+			Text:  fmt.Sprintf("%.0f%% of prompts cite specific files or code — reduces unnecessary tool calls.", specificPct),
+		})
+	}
+
+	// Hygiene insight
 	if highCtxSessions > 0 {
 		insights = append(insights, models.Insight{
 			Type:  "warning",
 			Title: "Long Sessions Detected",
 			Text:  fmt.Sprintf("%d session%s exceeded 50 turns. Use /clear between unrelated tasks to avoid context bloat.", highCtxSessions, pluralS(highCtxSessions)),
 		})
-	} else if avgTurns > 20 {
+	} else if hygieneT < 2 {
 		insights = append(insights, models.Insight{
 			Type:  "info",
-			Title: "Session Length Normal",
-			Text:  fmt.Sprintf("Average %.0f turns/session. Consider /clear when switching between unrelated tasks.", avgTurns),
+			Title: "Session Length",
+			Text:  fmt.Sprintf("Average %.1f turns/session. Consider /clear when switching between unrelated tasks.", avgTurns),
 		})
 	} else {
 		insights = append(insights, models.Insight{
 			Type:  "success",
 			Title: "Session Hygiene Good",
-			Text:  fmt.Sprintf("Average %.0f turns/session — sessions are staying focused and lean.", avgTurns),
+			Text:  fmt.Sprintf("Average %.1f turns/session — sessions stay focused.", avgTurns),
 		})
 	}
 
-	// Specificity insight
-	if specificPct < 40 {
-		insights = append(insights, models.Insight{
-			Type:  "info",
-			Title: "Low Prompt Specificity",
-			Text:  fmt.Sprintf("Only %.0f%% of prompts reference specific files or code. Including file paths reduces search overhead.", specificPct),
-		})
-	} else {
-		insights = append(insights, models.Insight{
-			Type:  "success",
-			Title: "Specificity Strong",
-			Text:  fmt.Sprintf("%.0f%% of prompts reference specific files or code — this reduces unnecessary search tool calls.", specificPct),
-		})
+	// ── Avg prompt length (for legacy raw metric) ────────────────────────────
+	var totalLen int
+	for _, s := range sessions {
+		totalLen += len(s.FirstPrompt)
+	}
+	avgPromptLen := float64(totalLen) / float64(len(sessions))
+
+	// ── Haiku AI Analysis ─────────────────────────────────────────────────────
+	var aiAnalysis *models.HaikuAnalysis
+	aiLoading := false
+
+	if !forceRefresh {
+		if cached := loadHaikuCache(); cached != nil {
+			aiAnalysis = cached.Analysis
+		}
 	}
 
-	// Conciseness insight
-	if avgPromptLen > 500 {
-		insights = append(insights, models.Insight{
-			Type:  "info",
-			Title: "Prompts Are Verbose",
-			Text:  fmt.Sprintf("Average first prompt is %.0f chars. Shorter, targeted prompts often get faster, more accurate responses.", avgPromptLen),
-		})
+	if aiAnalysis == nil {
+		// Return immediately with aiLoading=true; trigger background analysis
+		aiLoading = true
+		prompts := samplePrompts(sessions, 15)
+		go func() {
+			analysis, err := callHaiku(prompts)
+			if err != nil {
+				return
+			}
+			saveHaikuCache(&models.HaikuCache{
+				Analysis:   analysis,
+				AnalyzedAt: analysis.AnalyzedAt,
+				PromptHash: promptHash(prompts),
+			})
+		}()
 	}
 
 	writeJSON(w, models.InsightsResponse{
 		Score:           overallScore,
+		Tier:            overallTier,
 		Dimensions:      dimensions,
 		Insights:        insights,
-		CachePct:        math.Round(cachePct*10) / 10,
+		CachePct:        0, // removed — kept for JSON compat
 		AvgTurns:        math.Round(avgTurns*10) / 10,
 		HighCtxSessions: highCtxSessions,
 		SpecificPct:     math.Round(specificPct*10) / 10,
 		TotalSessions:   len(sessions),
 		AvgPromptLen:    math.Round(avgPromptLen),
+		OutputRatio:     math.Round(outputRatio*100) / 100,
+		OwnershipPct:    math.Round(ownershipPct*10) / 10,
+		AIAnalysis:      aiAnalysis,
+		AILoading:       aiLoading,
 	})
 }
 
@@ -857,30 +925,102 @@ func isSpecificPrompt(text string) bool {
 	return false
 }
 
-func clampScore(v int) int {
-	if v < 1 {
-		return 1
+// tierName converts a 0-3 integer to a tier label.
+// 0=Beginner, 1=Intermediate, 2=Advanced, 3=Expert
+func tierName(t int) string {
+	switch t {
+	case 3:
+		return "Expert"
+	case 2:
+		return "Advanced"
+	case 1:
+		return "Intermediate"
+	default:
+		return "Beginner"
 	}
-	if v > 99 {
-		return 99
-	}
-	return v
 }
 
-func promptLenToScore(avgLen float64) int {
-	switch {
-	case avgLen <= 60:
+// tierScore maps tier → representative numeric score for the ring display.
+func tierScore(tier string) int {
+	switch tier {
+	case "Expert":
 		return 95
-	case avgLen <= 120:
-		return 85
-	case avgLen <= 250:
+	case "Advanced":
 		return 75
-	case avgLen <= 450:
-		return 60
-	case avgLen <= 700:
-		return 45
+	case "Intermediate":
+		return 50
 	default:
-		return 30
+		return 25
+	}
+}
+
+// tierToBarScore maps a tier label to a 0-100 bar width for the dimension bars.
+func tierToBarScore(tier string) int {
+	switch tier {
+	case "Expert":
+		return 92
+	case "Advanced":
+		return 68
+	case "Intermediate":
+		return 42
+	default:
+		return 18
+	}
+}
+
+// outputRatioTier returns 0-3 tier for the output/input ratio.
+func outputRatioTier(ratio float64) int {
+	switch {
+	case ratio > 3.0:
+		return 3
+	case ratio > 2.0:
+		return 2
+	case ratio > 1.0:
+		return 1
+	default:
+		return 0
+	}
+}
+
+// ownershipTier returns 0-3 tier for fresh-input ownership %.
+func ownershipTier(pct float64) int {
+	switch {
+	case pct > 25:
+		return 3
+	case pct > 15:
+		return 2
+	case pct > 8:
+		return 1
+	default:
+		return 0
+	}
+}
+
+// specificityTier returns 0-3 tier for % of prompts referencing code/files.
+func specificityTier(pct float64) int {
+	switch {
+	case pct > 60:
+		return 3
+	case pct > 40:
+		return 2
+	case pct > 20:
+		return 1
+	default:
+		return 0
+	}
+}
+
+// hygieneTier returns 0-3 tier based on average turns per session.
+func hygieneTier(avgTurns float64) int {
+	switch {
+	case avgTurns < 12:
+		return 3
+	case avgTurns < 20:
+		return 2
+	case avgTurns < 35:
+		return 1
+	default:
+		return 0
 	}
 }
 
