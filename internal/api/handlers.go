@@ -34,6 +34,7 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/insights", h.getInsights)
 	mux.HandleFunc("/api/image", h.serveImage)
 	mux.HandleFunc("/api/health", h.health)
+	mux.HandleFunc("/api/tasks", h.getTasks)
 }
 
 func (h *Handler) getStats(w http.ResponseWriter, r *http.Request) {
@@ -639,9 +640,14 @@ func isSystemInjection(text string) bool {
 		"Task tool (superpowers:",
 		"Use this template when",
 		"[INST]",
+		// Claude Code XML-tagged command/tool outputs
+		"<command-message>",
+		"<command-name>",
+		"<local-command-",
+		"<local-command-caveat>",
 	}
 	for _, p := range prefixes {
-		if strings.HasPrefix(text, p) {
+		if strings.HasPrefix(trimmed, p) {
 			return true
 		}
 	}
