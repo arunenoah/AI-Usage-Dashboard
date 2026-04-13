@@ -68,41 +68,36 @@ If you are building your own analytics UI, this project shows practical widget p
 - **7-day token heatmap**: daily input/output token breakdown with color-coded intensity tiles.
 
 ## Quick Tour
-- [Dashboard overview](#1-dashboard-overview) — KPI cards, live banner, token trend chart
-- [Session Explorer + Prompt Insights](#2-session-explorer--prompt-insights) — Searchable sessions with quality hints
-- [Session Detail drawer](#3-session-detail-drawer) — Per-session deep dive with turn timeline
-- [Tool Usage, Hourly Activity, and Conversations](#4-tool-usage-hourly-activity-and-conversations) — Behavioral analytics widgets
-- [Tool samples drawer](#5-tool-samples-drawer) — Drill-down for selected tool usage patterns
-- [Conversation Detail drawer](#6-conversation-detail-drawer) — Turn-level analysis with prompt scoring and token breakdown
-- [Context Health + Claude Code Config + Tasks](#7-context-health--claude-code-config--tasks) — Context-fill tracking, system overview, and task progress
+- [Dashboard overview](#1-dashboard-overview) — KPI cards, token trend chart, 7-day heatmap
+- [Session Explorer + Prompt Insights](#2-session-explorer--prompt-insights) — Sessions with PromptScore, tooltips, and tier roadmap
+- [Prompt Examples Panel](#3-prompt-examples-panel) — Real conversation examples with improvement suggestions
+- [Conversations with CARE Scoring](#4-conversations-with-care-scoring) — Every prompt scored 1-10, filterable by quality
+- [Conversation Detail + Prompt Quality](#5-conversation-detail--prompt-quality) — Deep dive with CARE score ring and actionable tips
+- [Context Health + System Info + Tasks](#6-context-health--system-info--tasks) — Context tracking, config overview, task progress
 
 ## Dashboard screenshots (with explanation)
 ### 1) Dashboard overview
-Shows the global period filter, live session banner, top KPI cards (Sessions, Tokens Used, Projects, Tool Calls), and token trend area chart with 7-day heatmap showing input/output breakdown per day.
+KPI cards show **Sessions**, **Tokens Used** (with input/output breakdown), **Projects**, and **Tool Calls** — focused on actual usage, not misleading cost estimates. The token trend area chart shows output (green) vs input (purple) over time with date range toggles. Below, a **7-day heatmap** shows daily input/output token volume with color-coded intensity tiles.
 ![Dashboard overview](docs/images/dashboard-overview.png)
 
 ### 2) Session Explorer + Prompt Insights
-Shows the searchable/paginated session table (15 rows) on the left and prompt quality insights on the right. The PromptScore card includes beginner-friendly `?` tooltips explaining each metric (Output ratio, Agent delegation, Prompt specificity, Tool breadth), a "Path to Next Tier" section with clickable `examples →` links that open a slide-over panel showing real prompts from your conversations with improvement suggestions, and peer comparison benchmarks.
+The session table (15 rows per page) shows all sessions with source badges (Claude, Copilot), project, branch, and quality score. On the right, the **PromptScore** card shows your tier (Beginner → Expert) with beginner-friendly `?` tooltips explaining each metric. The **"Path to Next Tier"** section shows exactly what to improve, with clickable `examples →` links for each dimension.
 ![Session Explorer and Prompt Insights](docs/images/session-explorer-and-prompt-insights.png)
 
-### 3) Session Detail drawer
-Shows per-session deep dive data (turn timeline, token breakdown, tool calls, estimated cost) opened from Session Explorer.
-![Session Detail drawer](docs/images/session-detail-drawer.png)
+### 3) Prompt Examples Panel
+Clicking `examples →` opens a slide-over panel showing **real prompts from your conversations**. Each example shows what you typed (red), a better version (green), and why the change helps. Examples are dynamically generated from your actual session data — not hardcoded. This teaches you how to write better prompts by learning from your own usage patterns.
+![Prompt Examples Panel](docs/images/prompt-examples-panel.png)
 
-### 4) Tool Usage, Hourly Activity, and Conversations
-Shows behavioral analytics widgets: tool distribution, productivity by hour, and the full-width Conversations table with CARE-based prompt scoring (1-10) per conversation. Each prompt is rated on Context, Ask, Rules, and Examples. Filter conversations by score range: Weak (1-4), Needs Work (5-6), Decent (7-8), Good (9-10).
-![Tool Usage, Hourly Activity, and Conversations](docs/images/tool-usage-activity-and-conversations.png)
+### 4) Conversations with CARE Scoring
+Every conversation is scored **1-10** using the **CARE framework**: **C**ontext (file paths, role), **A**sk (action verb, detail), **R**ules (constraints, boundaries), **E**xamples (output format, code samples). Filter by score range to find your weakest prompts and learn from them. The Score column is color-coded: red (1-4 Weak), amber (5-6 Needs Work), blue (7-8 Decent), green (9-10 Good).
+![Conversations with CARE Scoring](docs/images/conversations-with-score.png)
 
-### 5) Tool sample details drawer
-Shows drill-down for a selected tool (example: `Read`) with recent sampled calls to understand usage patterns.
-![Tool samples drawer (Read)](docs/images/tool-samples-drawer-read.png)
+### 5) Conversation Detail + Prompt Quality
+The detail panel shows a **Prompt Quality ring** (1-10) with improvement tips tagged by CARE dimension (`[C]`, `[A]`, `[R]`, `[E]`). Below, the token usage breakdown shows what you paid for: Your Prompt, Claude Response, Context Loaded (cached), and Context Saved. The full user input and Claude response are displayed with tool call details.
+![Conversation Detail with Prompt Quality](docs/images/conversation-detail-drawer.png)
 
-### 6) Conversation Detail drawer
-Shows turn-level conversation analysis including a Prompt Quality ring (1-10 score with label), actionable improvement tips tagged by CARE dimension (`[C]`, `[A]`, `[R]`, `[E]`), billed token categories, context-window usage, and full assistant response.
-![Conversation Detail drawer](docs/images/conversation-detail-drawer.png)
-
-### 7) Context Health + Claude Code Config + Tasks
-Shows session context-fill health, system-level Claude usage/config overview (projects, session files, plugins, MCP servers), and a Tasks widget with completion ring and in-progress items across projects.
+### 6) Context Health + System Info + Tasks
+Three widgets in the bottom row: **Context Health** tracks context window fill per session with warning states. **System Info** shows Claude Code config (plugins, MCP servers, session stats). **Tasks** shows completion progress across projects with a ring chart and in-progress items.
 ![Context Health, System Info, and Tasks](docs/images/context-health-and-system-info.png)
 
 ## Tech stack
@@ -117,7 +112,7 @@ This project follows a **single-binary, layered architecture**:
 
 1. **Adapter layer** (`internal/adapters/*`)
    - Detects and parses source session files.
-   - Current implementation: Claude Code adapter.
+   - Implementations: Claude Code adapter, GitHub Copilot adapter.
 2. **Store layer** (`internal/store`)
    - In-memory indexed session store.
    - Computes aggregate statistics and time-windowed summaries.
