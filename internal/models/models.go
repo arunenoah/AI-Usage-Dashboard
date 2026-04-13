@@ -1,11 +1,16 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // InsightDimension is one scored dimension in the prompt quality breakdown
 type InsightDimension struct {
 	Label string `json:"label"`
 	Score int    `json:"score"`
+	Tier  string `json:"tier"`
+	Value string `json:"value"`
 }
 
 // Insight is one actionable finding
@@ -18,16 +23,20 @@ type Insight struct {
 
 // InsightsResponse is the full response for /api/insights
 type InsightsResponse struct {
-	Score      int                `json:"score"`
-	Dimensions []InsightDimension `json:"dimensions"`
-	Insights   []Insight          `json:"insights"`
-	// Raw metrics (for tooltips / detail)
-	CachePct        float64 `json:"cache_pct"`
-	AvgTurns        float64 `json:"avg_turns"`
-	HighCtxSessions int     `json:"high_ctx_sessions"`
-	SpecificPct     float64 `json:"specific_pct"`
-	TotalSessions   int     `json:"total_sessions"`
-	AvgPromptLen    float64 `json:"avg_prompt_len"`
+	Score           int                `json:"score"`
+	Tier            string             `json:"tier"`
+	Dimensions      []InsightDimension `json:"dimensions"`
+	Insights        []Insight          `json:"insights"`
+	CachePct        float64            `json:"cache_pct"`
+	AvgTurns        float64            `json:"avg_turns"`
+	HighCtxSessions int                `json:"high_ctx_sessions"`
+	SpecificPct     float64            `json:"specific_pct"`
+	TotalSessions   int                `json:"total_sessions"`
+	AvgPromptLen    float64            `json:"avg_prompt_len"`
+	OutputRatio     float64            `json:"output_ratio"`
+	OwnershipPct    float64            `json:"ownership_pct"`
+	AIAnalysis      *HaikuAnalysis     `json:"ai_analysis,omitempty"`
+	AILoading       bool               `json:"ai_loading,omitempty"`
 }
 
 // RawEntry is one line from a Claude Code JSONL session file
@@ -41,12 +50,33 @@ type RawEntry struct {
 	GitBranch  string      `json:"gitBranch,omitempty"`
 }
 
-// RawMessage is the message payload inside an assistant entry
+// RawMessage is the message payload inside a session entry.
+// Content can be either a JSON array of content blocks OR a plain string
+// (Claude Code uses the string form for short user messages).
 type RawMessage struct {
-	Role    string       `json:"role"`
-	Model   string       `json:"model,omitempty"`
-	Content []RawContent `json:"content"`
-	Usage   *Usage       `json:"usage,omitempty"`
+	Role    string          `json:"role"`
+	Model   string          `json:"model,omitempty"`
+	Content json.RawMessage `json:"content"`
+	Usage   *Usage          `json:"usage,omitempty"`
+}
+
+// ContentBlocks decodes Content into typed blocks, handling both the array
+// form ([{type,text,...}]) and the plain-string form ("install obsidian").
+func (m *RawMessage) ContentBlocks() []RawContent {
+	if len(m.Content) == 0 {
+		return nil
+	}
+	// Array form (most assistant messages and older user messages)
+	var blocks []RawContent
+	if json.Unmarshal(m.Content, &blocks) == nil {
+		return blocks
+	}
+	// String form (newer short user messages)
+	var s string
+	if json.Unmarshal(m.Content, &s) == nil && s != "" {
+		return []RawContent{{Type: "text", Text: s}}
+	}
+	return nil
 }
 
 // RawContent is one content block (text or tool_use)
