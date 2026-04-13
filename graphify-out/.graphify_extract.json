@@ -1,0 +1,3792 @@
+{
+  "nodes": [
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "label": "main.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "main_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L21"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_vite_config_js",
+      "label": "vite.config.js",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/vite.config.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_main_jsx",
+      "label": "main.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/main.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "label": "App.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_app",
+      "label": "App()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_promptscore_jsx",
+      "label": "PromptScore.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "promptscore_scorecolor",
+      "label": "scoreColor()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "promptscore_promptscore",
+      "label": "PromptScore()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L18"
+    },
+    {
+      "id": "promptscore_metapill",
+      "label": "MetaPill()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L133"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_contexthealth_jsx",
+      "label": "ContextHealth.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "contexthealth_contextfillpct",
+      "label": "contextFillPct()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "contexthealth_fillcolor",
+      "label": "fillColor()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "contexthealth_reltime",
+      "label": "relTime()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L16"
+    },
+    {
+      "id": "contexthealth_contexthealth",
+      "label": "ContextHealth()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L29"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_systeminfocard_jsx",
+      "label": "SystemInfoCard.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "systeminfocard_fmttok",
+      "label": "fmtTok()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "systeminfocard_shortmodel",
+      "label": "shortModel()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "systeminfocard_modelcolor",
+      "label": "modelColor()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "systeminfocard_systeminfocard",
+      "label": "SystemInfoCard()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L34"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sidebar_jsx",
+      "label": "Sidebar.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Sidebar.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "sidebar_navicon",
+      "label": "NavIcon()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Sidebar.jsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "sidebar_sidebar",
+      "label": "Sidebar()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Sidebar.jsx",
+      "source_location": "L43"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_activitychart_jsx",
+      "label": "ActivityChart.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "activitychart_buildhourly",
+      "label": "buildHourly()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L6"
+    },
+    {
+      "id": "activitychart_activitychart",
+      "label": "ActivityChart()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_livebanner_jsx",
+      "label": "LiveBanner.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/LiveBanner.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "livebanner_livebanner",
+      "label": "LiveBanner()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/LiveBanner.jsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "label": "RecentPrompts.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "recentprompts_fmttok",
+      "label": "fmtTok()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "recentprompts_fmtms",
+      "label": "fmtMs()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "recentprompts_reltime",
+      "label": "relTime()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "recentprompts_shortproject",
+      "label": "shortProject()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L37"
+    },
+    {
+      "id": "recentprompts_shortmodel",
+      "label": "shortModel()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L42"
+    },
+    {
+      "id": "recentprompts_ctxcolor",
+      "label": "ctxColor()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L47"
+    },
+    {
+      "id": "recentprompts_extractimages",
+      "label": "extractImages()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L54"
+    },
+    {
+      "id": "recentprompts_cleantext",
+      "label": "cleanText()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L65"
+    },
+    {
+      "id": "recentprompts_expandabletext",
+      "label": "ExpandableText()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L82"
+    },
+    {
+      "id": "recentprompts_tooldetaillist",
+      "label": "ToolDetailList()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L121"
+    },
+    {
+      "id": "recentprompts_conversationpanel",
+      "label": "ConversationPanel()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L166"
+    },
+    {
+      "id": "recentprompts_recentprompts",
+      "label": "RecentPrompts()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L354"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_icon_jsx",
+      "label": "Icon.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Icon.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "icon_icon",
+      "label": "Icon()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Icon.jsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_toolchart_jsx",
+      "label": "ToolChart.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "toolchart_getcolor",
+      "label": "getColor()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "toolchart_toolsamplepanel",
+      "label": "ToolSamplePanel()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "toolchart_toolchart",
+      "label": "ToolChart()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L98"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiondetail_jsx",
+      "label": "SessionDetail.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "sessiondetail_fmtms",
+      "label": "fmtMs()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "sessiondetail_fmttokens",
+      "label": "fmtTokens()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "sessiondetail_calcturncost",
+      "label": "calcTurnCost()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L18"
+    },
+    {
+      "id": "sessiondetail_analyzesession",
+      "label": "analyzeSession()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L33"
+    },
+    {
+      "id": "sessiondetail_sessiondetail",
+      "label": "SessionDetail()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L63"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "label": "SessionTable.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "sessiontable_toolbadge",
+      "label": "toolBadge()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "sessiontable_branchbadge",
+      "label": "branchBadge()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "sessiontable_scorecolor",
+      "label": "scoreColor()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L31"
+    },
+    {
+      "id": "sessiontable_fmttokens",
+      "label": "fmtTokens()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L37"
+    },
+    {
+      "id": "sessiontable_calccost",
+      "label": "calcCost()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L44"
+    },
+    {
+      "id": "sessiontable_calcscore",
+      "label": "calcScore()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L52"
+    },
+    {
+      "id": "sessiontable_shortproject",
+      "label": "shortProject()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L64"
+    },
+    {
+      "id": "sessiontable_sessiontable",
+      "label": "SessionTable()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L70"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_costchart_jsx",
+      "label": "CostChart.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/CostChart.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "costchart_costchart",
+      "label": "CostChart()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/CostChart.jsx",
+      "source_location": "L6"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_statcard_jsx",
+      "label": "StatCard.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/StatCard.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "statcard_statcard",
+      "label": "StatCard()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/StatCard.jsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_hooks_usewebsocket_js",
+      "label": "useWebSocket.js",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/hooks/useWebSocket.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "usewebsocket_usewebsocket",
+      "label": "useWebSocket()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/hooks/useWebSocket.js",
+      "source_location": "L3"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "label": "Dashboard.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "dashboard_fmt",
+      "label": "fmt()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L26"
+    },
+    {
+      "id": "dashboard_buildquery",
+      "label": "buildQuery()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L35"
+    },
+    {
+      "id": "dashboard_todaystr",
+      "label": "todayStr()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L44"
+    },
+    {
+      "id": "dashboard_datefilterbar",
+      "label": "DateFilterBar()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L49"
+    },
+    {
+      "id": "dashboard_dashboard",
+      "label": "Dashboard()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L123"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_sessions_jsx",
+      "label": "Sessions.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Sessions.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "sessions_sessions",
+      "label": "Sessions()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Sessions.jsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_settings_jsx",
+      "label": "Settings.jsx",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Settings.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "settings_settings",
+      "label": "Settings()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Settings.jsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "label": "watcher.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "watcher_watcher",
+      "label": "Watcher",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L15"
+    },
+    {
+      "id": "watcher_new",
+      "label": "New()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L21"
+    },
+    {
+      "id": "watcher_watcher_start",
+      "label": ".Start()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L25"
+    },
+    {
+      "id": "watcher_watcher_handlechange",
+      "label": ".handleChange()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L71"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "label": "models.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "models_insightdimension",
+      "label": "InsightDimension",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L6"
+    },
+    {
+      "id": "models_insight",
+      "label": "Insight",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L12"
+    },
+    {
+      "id": "models_insightsresponse",
+      "label": "InsightsResponse",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L20"
+    },
+    {
+      "id": "models_rawentry",
+      "label": "RawEntry",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L34"
+    },
+    {
+      "id": "models_rawmessage",
+      "label": "RawMessage",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L45"
+    },
+    {
+      "id": "models_rawcontent",
+      "label": "RawContent",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L53"
+    },
+    {
+      "id": "models_usage",
+      "label": "Usage",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L62"
+    },
+    {
+      "id": "models_session",
+      "label": "Session",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L70"
+    },
+    {
+      "id": "models_historyentry",
+      "label": "HistoryEntry",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L90"
+    },
+    {
+      "id": "models_tooldetail",
+      "label": "ToolDetail",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L97"
+    },
+    {
+      "id": "models_conversationpair",
+      "label": "ConversationPair",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L103"
+    },
+    {
+      "id": "models_modelstats",
+      "label": "ModelStats",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L120"
+    },
+    {
+      "id": "models_todoitem",
+      "label": "TodoItem",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L130"
+    },
+    {
+      "id": "models_turnentry",
+      "label": "TurnEntry",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L137"
+    },
+    {
+      "id": "models_dailystats",
+      "label": "DailyStats",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L150"
+    },
+    {
+      "id": "models_stats",
+      "label": "Stats",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L161"
+    },
+    {
+      "id": "models_systeminfo",
+      "label": "SystemInfo",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L178"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_adapter_go",
+      "label": "adapter.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/adapter.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "adapters_adapter",
+      "label": "Adapter",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/adapter.go",
+      "source_location": "L6"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_test_go",
+      "label": "adapter_test.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "adapter_test_testdetect",
+      "label": "TestDetect()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L9"
+    },
+    {
+      "id": "adapter_test_testparserealsession",
+      "label": "TestParseRealSession()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L16"
+    },
+    {
+      "id": "adapter_test_testdecodeprojectdir",
+      "label": "TestDecodeProjectDir()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L35"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "label": "adapter.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "claudecode_adapter",
+      "label": "Adapter",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L16"
+    },
+    {
+      "id": "claudecode_adapter_name",
+      "label": ".Name()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L20"
+    },
+    {
+      "id": "claudecode_adapter_detect",
+      "label": ".Detect()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L23"
+    },
+    {
+      "id": "claudecode_adapter_parse",
+      "label": ".Parse()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L39"
+    },
+    {
+      "id": "claudecode_adapter_parseturns",
+      "label": ".ParseTurns()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L148"
+    },
+    {
+      "id": "claudecode_adapter_parseturnsfull",
+      "label": ".ParseTurnsFull()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L153"
+    },
+    {
+      "id": "adapter_extracttoolsample",
+      "label": "extractToolSample()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L297"
+    },
+    {
+      "id": "adapter_decodeprojectdir",
+      "label": "decodeProjectDir()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L340"
+    },
+    {
+      "id": "adapter_truncatemaybe",
+      "label": "truncateMaybe()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L349"
+    },
+    {
+      "id": "adapter_truncate",
+      "label": "truncate()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L356"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "label": "handlers_test.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "handlers_test_newtesthandler",
+      "label": "newTestHandler()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L14"
+    },
+    {
+      "id": "handlers_test_testgetstats",
+      "label": "TestGetStats()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L30"
+    },
+    {
+      "id": "handlers_test_testgetsessions",
+      "label": "TestGetSessions()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L47"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "label": "handlers.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "api_handler",
+      "label": "Handler",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L21"
+    },
+    {
+      "id": "api_handler_register",
+      "label": ".Register()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L26"
+    },
+    {
+      "id": "api_handler_getstats",
+      "label": ".getStats()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L39"
+    },
+    {
+      "id": "api_handler_getsessions",
+      "label": ".getSessions()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L63"
+    },
+    {
+      "id": "api_handler_getsessiondetail",
+      "label": ".getSessionDetail()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L105"
+    },
+    {
+      "id": "api_handler_gettoolsamples",
+      "label": ".getToolSamples()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L136"
+    },
+    {
+      "id": "api_handler_gethistory",
+      "label": ".getHistory()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L182"
+    },
+    {
+      "id": "api_handler_getsysteminfo",
+      "label": ".getSystemInfo()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L245"
+    },
+    {
+      "id": "api_handler_getconversations",
+      "label": ".getConversations()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L439"
+    },
+    {
+      "id": "handlers_issysteminjection",
+      "label": "isSystemInjection()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L611"
+    },
+    {
+      "id": "api_handler_getinsights",
+      "label": ".getInsights()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L653"
+    },
+    {
+      "id": "handlers_isspecificprompt",
+      "label": "isSpecificPrompt()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L830"
+    },
+    {
+      "id": "handlers_clampscore",
+      "label": "clampScore()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L854"
+    },
+    {
+      "id": "handlers_promptlentoscore",
+      "label": "promptLenToScore()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L864"
+    },
+    {
+      "id": "handlers_plurals",
+      "label": "pluralS()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L881"
+    },
+    {
+      "id": "api_handler_serveimage",
+      "label": ".serveImage()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L889"
+    },
+    {
+      "id": "api_handler_health",
+      "label": ".health()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L906"
+    },
+    {
+      "id": "handlers_writejson",
+      "label": "writeJSON()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L910"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "label": "hub.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "ws_hub",
+      "label": "Hub",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L16"
+    },
+    {
+      "id": "hub_newhub",
+      "label": "NewHub()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L21"
+    },
+    {
+      "id": "ws_hub_servews",
+      "label": ".ServeWS()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L25"
+    },
+    {
+      "id": "ws_hub_broadcastevent",
+      "label": ".BroadcastEvent()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L50"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_test_go",
+      "label": "store_test.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "store_test_teststoreupsertandstats",
+      "label": "TestStoreUpsertAndStats()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L10"
+    },
+    {
+      "id": "store_test_teststoresessionsorder",
+      "label": "TestStoreSessionsOrder()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L43"
+    },
+    {
+      "id": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "label": "store.go",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L1"
+    },
+    {
+      "id": "store_store",
+      "label": "Store",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L22"
+    },
+    {
+      "id": "store_new",
+      "label": "New()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L27"
+    },
+    {
+      "id": "store_store_upsert",
+      "label": ".Upsert()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L31"
+    },
+    {
+      "id": "store_store_get",
+      "label": ".Get()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L37"
+    },
+    {
+      "id": "store_store_loadall",
+      "label": ".LoadAll()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L43"
+    },
+    {
+      "id": "store_store_sessions",
+      "label": ".Sessions()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L59"
+    },
+    {
+      "id": "store_store_stats",
+      "label": ".Stats()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L72"
+    },
+    {
+      "id": "store_store_statsfordays",
+      "label": ".StatsForDays()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L77"
+    },
+    {
+      "id": "store_store_statsforrange",
+      "label": ".StatsForRange()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L86"
+    },
+    {
+      "id": "store_tokencost",
+      "label": "tokenCost()",
+      "file_type": "code",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L175"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "embed",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "fmt",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "log",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "http",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "claudecode",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "api",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "store",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "watcher",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "ws",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_main_go",
+      "target": "main_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/main.go",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_vite_config_js",
+      "target": "vite",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/vite.config.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_vite_config_js",
+      "target": "plugin_react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/vite.config.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_main_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/main.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_main_jsx",
+      "target": "client",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/main.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_main_jsx",
+      "target": "react_router_dom",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/main.jsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_main_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/main.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_main_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_styles_main_css",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/main.jsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "target": "react_router_dom",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sidebar_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_sessions_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_settings_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_app_jsx",
+      "target": "app_app",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/App.jsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_promptscore_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_promptscore_jsx",
+      "target": "promptscore_scorecolor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_promptscore_jsx",
+      "target": "promptscore_promptscore",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_promptscore_jsx",
+      "target": "promptscore_metapill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "promptscore_promptscore",
+      "target": "promptscore_scorecolor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/PromptScore.jsx",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_contexthealth_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_contexthealth_jsx",
+      "target": "contexthealth_contextfillpct",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_contexthealth_jsx",
+      "target": "contexthealth_fillcolor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_contexthealth_jsx",
+      "target": "contexthealth_reltime",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_contexthealth_jsx",
+      "target": "contexthealth_contexthealth",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "contexthealth_contexthealth",
+      "target": "contexthealth_contextfillpct",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ContextHealth.jsx",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_systeminfocard_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_systeminfocard_jsx",
+      "target": "systeminfocard_fmttok",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_systeminfocard_jsx",
+      "target": "systeminfocard_shortmodel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_systeminfocard_jsx",
+      "target": "systeminfocard_modelcolor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_systeminfocard_jsx",
+      "target": "systeminfocard_systeminfocard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SystemInfoCard.jsx",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sidebar_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Sidebar.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sidebar_jsx",
+      "target": "react_router_dom",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Sidebar.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sidebar_jsx",
+      "target": "sidebar_navicon",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Sidebar.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sidebar_jsx",
+      "target": "sidebar_sidebar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Sidebar.jsx",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_activitychart_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_activitychart_jsx",
+      "target": "chart_js",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_activitychart_jsx",
+      "target": "activitychart_buildhourly",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_activitychart_jsx",
+      "target": "activitychart_activitychart",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "activitychart_activitychart",
+      "target": "activitychart_buildhourly",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ActivityChart.jsx",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_livebanner_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/LiveBanner.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_livebanner_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_icon_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/LiveBanner.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_livebanner_jsx",
+      "target": "livebanner_livebanner",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/LiveBanner.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_fmttok",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_fmtms",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_reltime",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_shortproject",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_shortmodel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_ctxcolor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_extractimages",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_cleantext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_expandabletext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_tooldetaillist",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_conversationpanel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_recentprompts_jsx",
+      "target": "recentprompts_recentprompts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L354",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_extractimages",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L168",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_shortproject",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_shortmodel",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_reltime",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_ctxcolor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L239",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_fmtms",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L255",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_cleantext",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L281",
+      "weight": 1.0
+    },
+    {
+      "source": "recentprompts_conversationpanel",
+      "target": "recentprompts_fmttok",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/RecentPrompts.jsx",
+      "source_location": "L297",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_icon_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Icon.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_icon_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_assets_icons_svg",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Icon.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_icon_jsx",
+      "target": "icon_icon",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/Icon.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_toolchart_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_toolchart_jsx",
+      "target": "toolchart_getcolor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_toolchart_jsx",
+      "target": "toolchart_toolsamplepanel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_toolchart_jsx",
+      "target": "toolchart_toolchart",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "toolchart_toolsamplepanel",
+      "target": "toolchart_getcolor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/ToolChart.jsx",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiondetail_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiondetail_jsx",
+      "target": "sessiondetail_fmtms",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiondetail_jsx",
+      "target": "sessiondetail_fmttokens",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiondetail_jsx",
+      "target": "sessiondetail_calcturncost",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiondetail_jsx",
+      "target": "sessiondetail_analyzesession",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiondetail_jsx",
+      "target": "sessiondetail_sessiondetail",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "sessiondetail_sessiondetail",
+      "target": "sessiondetail_analyzesession",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "sessiondetail_sessiondetail",
+      "target": "sessiondetail_fmttokens",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "sessiondetail_sessiondetail",
+      "target": "sessiondetail_fmtms",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionDetail.jsx",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_toolbadge",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_branchbadge",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_scorecolor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_fmttokens",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_calccost",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_calcscore",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_shortproject",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_sessiontable_jsx",
+      "target": "sessiontable_sessiontable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "sessiontable_sessiontable",
+      "target": "sessiontable_shortproject",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/SessionTable.jsx",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_costchart_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/CostChart.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_costchart_jsx",
+      "target": "chart_js",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/CostChart.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_costchart_jsx",
+      "target": "costchart_costchart",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/CostChart.jsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_statcard_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/StatCard.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_statcard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_icon_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/StatCard.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_components_statcard_jsx",
+      "target": "statcard_statcard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/components/StatCard.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_hooks_usewebsocket_js",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/hooks/useWebSocket.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_hooks_usewebsocket_js",
+      "target": "usewebsocket_usewebsocket",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/hooks/useWebSocket.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_statcard_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_tokenchart_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_toolchart_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_promptscore_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_activitychart_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_livebanner_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_sessiontable_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_contexthealth_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_sessiondetail_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_systeminfocard_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_recentprompts_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_hooks_usewebsocket_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "dashboard_fmt",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "dashboard_buildquery",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "dashboard_todaystr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "dashboard_datefilterbar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_dashboard_jsx",
+      "target": "dashboard_dashboard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboard_datefilterbar",
+      "target": "dashboard_todaystr",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "dashboard_dashboard",
+      "target": "dashboard_fmt",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Dashboard.jsx",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_sessions_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Sessions.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_sessions_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_sessiontable_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Sessions.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_sessions_jsx",
+      "target": "sessions_sessions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Sessions.jsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_settings_jsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Settings.jsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_settings_jsx",
+      "target": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_components_icon_tsx",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Settings.jsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_web_src_pages_settings_jsx",
+      "target": "settings_settings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/web/src/pages/Settings.jsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "log",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "filepath",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "strings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "fsnotify",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "adapters",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "store",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "ws",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "watcher_watcher",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_watcher_watcher_go",
+      "target": "watcher_new",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "watcher_watcher",
+      "target": "watcher_watcher_start",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "watcher_watcher",
+      "target": "watcher_watcher_handlechange",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "watcher_watcher_start",
+      "target": "watcher_watcher_handlechange",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/watcher/watcher.go",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "time",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_insightdimension",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_insight",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_insightsresponse",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_rawentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_rawmessage",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_rawcontent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_usage",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_session",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_historyentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_tooldetail",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_conversationpair",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_modelstats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_todoitem",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_turnentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_dailystats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_stats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_models_models_go",
+      "target": "models_systeminfo",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/models/models.go",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_adapter_go",
+      "target": "models",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/adapter.go",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_adapter_go",
+      "target": "adapters_adapter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/adapter.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_test_go",
+      "target": "os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_test_go",
+      "target": "filepath",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_test_go",
+      "target": "testing",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_test_go",
+      "target": "adapter_test_testdetect",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_test_go",
+      "target": "adapter_test_testparserealsession",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_test_go",
+      "target": "adapter_test_testdecodeprojectdir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter_test.go",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "bufio",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "json",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "fmt",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "filepath",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "strings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "adapters",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "models",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "claudecode_adapter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter",
+      "target": "claudecode_adapter_name",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter",
+      "target": "claudecode_adapter_detect",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter",
+      "target": "claudecode_adapter_parse",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter",
+      "target": "claudecode_adapter_parseturns",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter",
+      "target": "claudecode_adapter_parseturnsfull",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter",
+      "target": "claudecode_adapter_parseturns",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "adapter_extracttoolsample",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L297",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "adapter_decodeprojectdir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L340",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "adapter_truncatemaybe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L349",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_adapters_claudecode_adapter_go",
+      "target": "adapter_truncate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L356",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter_parse",
+      "target": "adapter_decodeprojectdir",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter_parse",
+      "target": "adapter_truncate",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter_parse",
+      "target": "adapter_extracttoolsample",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter_parseturnsfull",
+      "target": "claudecode_adapter_parseturns",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter_parseturns",
+      "target": "adapter_truncatemaybe",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "claudecode_adapter_parseturns",
+      "target": "adapter_truncate",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L236",
+      "weight": 1.0
+    },
+    {
+      "source": "adapter_extracttoolsample",
+      "target": "adapter_truncate",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L309",
+      "weight": 1.0
+    },
+    {
+      "source": "adapter_truncatemaybe",
+      "target": "adapter_truncate",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/adapters/claudecode/adapter.go",
+      "source_location": "L353",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "json",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "http",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "httptest",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "testing",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "time",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "models",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "store",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "handlers_test_newtesthandler",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "handlers_test_testgetstats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_test_go",
+      "target": "handlers_test_testgetsessions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "handlers_test_testgetstats",
+      "target": "handlers_test_newtesthandler",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "handlers_test_testgetsessions",
+      "target": "handlers_test_newtesthandler",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers_test.go",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "bufio",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "json",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "fmt",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "math",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "http",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "filepath",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "sort",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "strconv",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "strings",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "time",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "claudecode",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "models",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "store",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "api_handler",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_register",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_getstats",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_getsessions",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_getsessiondetail",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_gettoolsamples",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_gethistory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_getsysteminfo",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L245",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_getconversations",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L439",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "handlers_issysteminjection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L611",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_getinsights",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L653",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "handlers_isspecificprompt",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L830",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "handlers_clampscore",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L854",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "handlers_promptlentoscore",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L864",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "handlers_plurals",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L881",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_serveimage",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L889",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler",
+      "target": "api_handler_health",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L906",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_api_handlers_go",
+      "target": "handlers_writejson",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L910",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getstats",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getsessions",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getsessiondetail",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L129",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_gettoolsamples",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_gethistory",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getsysteminfo",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L434",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getconversations",
+      "target": "handlers_issysteminjection",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L501",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getconversations",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L601",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getinsights",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L676",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getinsights",
+      "target": "handlers_isspecificprompt",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L684",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getinsights",
+      "target": "handlers_clampscore",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L689",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getinsights",
+      "target": "handlers_promptlentoscore",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L710",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_getinsights",
+      "target": "handlers_plurals",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L776",
+      "weight": 1.0
+    },
+    {
+      "source": "api_handler_health",
+      "target": "handlers_writejson",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/api/handlers.go",
+      "source_location": "L907",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "target": "json",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "target": "log",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "target": "http",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "target": "sync",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "target": "websocket",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "target": "ws_hub",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_ws_hub_go",
+      "target": "hub_newhub",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "ws_hub",
+      "target": "ws_hub_servews",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "ws_hub",
+      "target": "ws_hub_broadcastevent",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/ws/hub.go",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_test_go",
+      "target": "testing",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_test_go",
+      "target": "time",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_test_go",
+      "target": "models",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_test_go",
+      "target": "store_test_teststoreupsertandstats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_test_go",
+      "target": "store_test_teststoresessionsorder",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store_test.go",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "math",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "sort",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "sync",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "time",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "adapters",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "models",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "store_store",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "store_new",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store",
+      "target": "store_store_upsert",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store",
+      "target": "store_store_get",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store",
+      "target": "store_store_loadall",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store",
+      "target": "store_store_sessions",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store",
+      "target": "store_store_stats",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store",
+      "target": "store_store_statsfordays",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store",
+      "target": "store_store_statsforrange",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "users_arunkumar_documents_application_ai_usage_dashboard_internal_store_store_go",
+      "target": "store_tokencost",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store_loadall",
+      "target": "store_store_upsert",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store_stats",
+      "target": "store_store_statsforrange",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store_statsfordays",
+      "target": "store_store_statsforrange",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store_statsforrange",
+      "target": "store_store_sessions",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "store_store_statsforrange",
+      "target": "store_tokencost",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/arunkumar/Documents/Application/AI-Usage-Dashboard/internal/store/store.go",
+      "source_location": "L127",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
+import { useWebSocket } from '../hooks/useWebSocket.js'
 
 const PERIODS = [
   { label: 'Today', value: 'today' },
@@ -360,9 +361,8 @@ export default function RecentPrompts({ onSessionClick }) {
   const [selected, setSelected] = useState(null)
   const [page, setPage] = useState(1)
 
-  useEffect(() => {
+  const fetchConversations = useCallback(() => {
     setLoading(true)
-    setSelected(null)
     fetch(`/api/conversations?period=${period}&limit=${PAGE_SIZE}&page=${page}`)
       .then(r => r.json())
       .then(d => {
@@ -373,6 +373,15 @@ export default function RecentPrompts({ onSessionClick }) {
       })
       .catch(() => setLoading(false))
   }, [period, page])
+
+  useEffect(() => {
+    setSelected(null)
+    fetchConversations()
+  }, [fetchConversations])
+
+  useWebSocket((msg) => {
+    if (msg.type === 'session_updated') fetchConversations()
+  })
 
   const paged = pairs
 

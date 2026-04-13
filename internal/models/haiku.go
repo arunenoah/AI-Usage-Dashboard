@@ -22,6 +22,7 @@ type HaikuAnalysis struct {
 	TopImprovements   []HaikuImprovement `json:"top_improvements"`
 	Strengths         []string           `json:"strengths"`
 	Rewrite           *HaikuRewrite      `json:"rewrite,omitempty"`
+	Insights          []Insight          `json:"insights,omitempty"`
 	AnalyzedAt        time.Time          `json:"analyzed_at"`
 	PromptCount       int                `json:"prompt_count"`
 }

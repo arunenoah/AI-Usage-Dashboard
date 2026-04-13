@@ -697,21 +697,27 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	}
 	outputRatioT := outputRatioTier(outputRatio)
 
-	// ── Cache Efficiency ─────────────────────────────────────────────────────
-	// cacheRead / (cacheRead + freshInput) — higher is better (more from cache = less cost)
-	// NOTE: ownershipPct (fresh/total) was backwards — penalised good cache use.
-	// We now measure cache efficiency directly; 99%+ is Expert, not Beginner.
-	var totalFreshInput, totalCacheRead int64
+	// ── Agent Delegation ─────────────────────────────────────────────────────
+	// % of sessions that used the Agent tool (dispatching subagents).
+	// This is the clearest signal of power-user Claude Code behaviour.
+	agentSessions := 0
 	for _, s := range sessions {
-		totalFreshInput += int64(s.TotalUsage.InputTokens)
-		totalCacheRead += int64(s.TotalUsage.CacheReadInputTokens)
+		if s.ToolCounts["Agent"] > 0 {
+			agentSessions++
+		}
 	}
-	ownershipPct := 0.0 // kept for JSON compat
-	if totalFreshInput+totalCacheRead > 0 {
-		ownershipPct = float64(totalFreshInput) / float64(totalFreshInput+totalCacheRead) * 100
+	agentUsagePct := float64(agentSessions) / float64(len(sessions)) * 100
+	agentT := agentUsageTier(agentUsagePct)
+
+	// ── Tool Diversity ────────────────────────────────────────────────────────
+	// Average number of distinct tool types used per session.
+	// Experts use Agent, Read, Write, Edit, Bash, Grep, Glob, WebSearch etc.
+	var totalUniqTools float64
+	for _, s := range sessions {
+		totalUniqTools += float64(len(s.ToolCounts))
 	}
-	cacheEffPct := 100 - ownershipPct // how much comes from cache
-	cacheEffT := cacheEfficiencyTier(cacheEffPct)
+	avgToolDiversity := totalUniqTools / float64(len(sessions))
+	toolDivT := toolDiversityTier(avgToolDiversity)
 
 	// ── Specificity ───────────────────────────────────────────────────────────
 	specificCount := 0
@@ -723,24 +729,31 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	specificPct := float64(specificCount) / float64(len(sessions)) * 100
 	specificT := specificityTier(specificPct)
 
-	// ── Session Hygiene ───────────────────────────────────────────────────────
+	// ── Context info (not scored — just shown as raw pills) ───────────────────
+	var totalFreshInput, totalCacheRead int64
 	var totalTurns int
 	highCtxSessions := 0
 	for _, s := range sessions {
+		totalFreshInput += int64(s.TotalUsage.InputTokens)
+		totalCacheRead += int64(s.TotalUsage.CacheReadInputTokens)
 		totalTurns += s.UserTurns
 		if s.UserTurns > 50 {
 			highCtxSessions++
 		}
 	}
+	ownershipPct := 0.0 // kept for JSON compat
+	if totalFreshInput+totalCacheRead > 0 {
+		ownershipPct = float64(totalFreshInput) / float64(totalFreshInput+totalCacheRead) * 100
+	}
+	cacheEffPct := 100 - ownershipPct
 	avgTurns := float64(totalTurns) / float64(len(sessions))
-	hygieneT := hygieneTier(avgTurns)
 
-	// ── Overall Tier (weakest link) ────────────────────────────────────────────
+	// ── Overall Tier (weakest link across 4 capability dimensions) ────────────
 	tierScores := map[string]int{
 		"output_ratio":     outputRatioT,
-		"cache_efficiency": cacheEffT,
+		"agent_delegation": agentT,
 		"specificity":      specificT,
-		"session_hygiene":  hygieneT,
+		"tool_diversity":   toolDivT,
 	}
 	minTier := outputRatioT
 	weakestDim := "output_ratio"
@@ -756,102 +769,39 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	// ── Dimensions ────────────────────────────────────────────────────────────
 	dimensions := []models.InsightDimension{
 		{
-			Label: "Output ratio",
-			Score: tierToBarScore(tierName(outputRatioT)),
-			Tier:  tierName(outputRatioT),
-			Value: fmt.Sprintf("%.1f×", outputRatio),
+			Label:       "Output ratio",
+			Score:       tierToBarScore(tierName(outputRatioT)),
+			Tier:        tierName(outputRatioT),
+			Value:       fmt.Sprintf("%.1f×", outputRatio),
+			Description: "Output tokens ÷ input tokens. Experts ask for complete implementations — Claude writes 3× more than you type.",
 		},
 		{
-			Label: "Cache efficiency",
-			Score: tierToBarScore(tierName(cacheEffT)),
-			Tier:  tierName(cacheEffT),
-			Value: fmt.Sprintf("%.0f%%", cacheEffPct),
+			Label:       "Agent delegation",
+			Score:       tierToBarScore(tierName(agentT)),
+			Tier:        tierName(agentT),
+			Value:       fmt.Sprintf("%.0f%%", agentUsagePct),
+			Description: "% of sessions where you dispatched a subagent. Using agents for complex tasks is the #1 sign of an expert Claude Code user.",
 		},
 		{
-			Label: "Specificity",
-			Score: tierToBarScore(tierName(specificT)),
-			Tier:  tierName(specificT),
-			Value: fmt.Sprintf("%.0f%%", specificPct),
+			Label:       "Prompt specificity",
+			Score:       tierToBarScore(tierName(specificT)),
+			Tier:        tierName(specificT),
+			Value:       fmt.Sprintf("%.0f%%", specificPct),
+			Description: "% of first prompts referencing exact files, functions, or line numbers. Specific prompts skip search overhead.",
 		},
 		{
-			Label: "Session hygiene",
-			Score: tierToBarScore(tierName(hygieneT)),
-			Tier:  tierName(hygieneT),
-			Value: fmt.Sprintf("%.1f turns", avgTurns),
+			Label:       "Tool breadth",
+			Score:       tierToBarScore(tierName(toolDivT)),
+			Tier:        tierName(toolDivT),
+			Value:       fmt.Sprintf("%.1f tools", avgToolDiversity),
+			Description: "Average unique tools per session (Read, Write, Bash, Agent, Grep…). Experts use Claude Code's full toolbox.",
 		},
 	}
 
-	// ── Dynamic Insights ──────────────────────────────────────────────────────
+	// ── Insights come from Haiku AI analysis (populated below) ──────────────
 	var insights []models.Insight
 
-	// Output ratio insight
-	if outputRatioT < 2 {
-		insights = append(insights, models.Insight{
-			Type:  "warning",
-			Title: "Low Output Ratio",
-			Text:  fmt.Sprintf("Claude produces %.1f× your input. Aim for 2×+ — ask for full implementations instead of partial steps. Example: \"implement the entire handler\" vs \"show me how to start\".", outputRatio),
-		})
-	} else {
-		insights = append(insights, models.Insight{
-			Type:  "success",
-			Title: "Strong Output Ratio",
-			Text:  fmt.Sprintf("%.1f× output per input — you're delegating effectively. Community median is ~2.1×.", outputRatio),
-		})
-	}
-
-	// Cache efficiency insight
-	if cacheEffT >= 3 {
-		insights = append(insights, models.Insight{
-			Type:  "success",
-			Title: "Expert Cache Efficiency",
-			Text:  fmt.Sprintf("%.0f%% of context served from cache — you maintain stable CLAUDE.md and consistent workspaces. This puts you in the top 10%% for cost efficiency.", cacheEffPct),
-		})
-	} else if cacheEffT < 2 {
-		insights = append(insights, models.Insight{
-			Type:  "info",
-			Title: "Cache Efficiency",
-			Text:  fmt.Sprintf("%.0f%% cache hit rate. Keep CLAUDE.md stable and work from the same project directory to improve this. Community median is ~65%%.", cacheEffPct),
-		})
-	}
-
-	// Specificity insight
-	if specificT < 2 {
-		insights = append(insights, models.Insight{
-			Type:  "info",
-			Title: "Low Prompt Specificity",
-			Text:  fmt.Sprintf("%.0f%% of prompts reference specific files or code. Community median is ~42%%. Add file paths, function names, or line numbers — e.g. \"in internal/api/handlers.go:157\" vs \"in the handler\".", specificPct),
-		})
-	} else {
-		insights = append(insights, models.Insight{
-			Type:  "success",
-			Title: "Specific Prompts",
-			Text:  fmt.Sprintf("%.0f%% of prompts cite specific files or code — reduces unnecessary search tool calls.", specificPct),
-		})
-	}
-
-	// Hygiene insight
-	if highCtxSessions > 0 {
-		insights = append(insights, models.Insight{
-			Type:  "warning",
-			Title: "Long Sessions Detected",
-			Text:  fmt.Sprintf("%d session%s exceeded 50 turns (community median: ~22). Use /clear between unrelated tasks — context bloat causes Claude to lose focus and repeat earlier work.", highCtxSessions, pluralS(highCtxSessions)),
-		})
-	} else if hygieneT < 2 {
-		insights = append(insights, models.Insight{
-			Type:  "info",
-			Title: "Session Length Above Median",
-			Text:  fmt.Sprintf("Average %.1f turns/session vs community median ~22. Use /clear when switching tasks — each new session starts clean and costs less in repeated context.", avgTurns),
-		})
-	} else {
-		insights = append(insights, models.Insight{
-			Type:  "success",
-			Title: "Session Hygiene Good",
-			Text:  fmt.Sprintf("Average %.1f turns/session — sessions stay focused.", avgTurns),
-		})
-	}
-
 	// ── Next Tier Goals ───────────────────────────────────────────────────────
-	// Show what each dimension needs to reach the next overall tier
 	nextT := minTier + 1
 	if nextT > 3 {
 		nextT = 3
@@ -859,7 +809,7 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	var nextTierGoals []models.TierGoal
 
 	// Output ratio goal
-	outThresholds := []float64{1.0, 2.0, 3.0} // Intermediate, Advanced, Expert
+	outThresholds := []float64{1.0, 2.0, 3.0}
 	outTarget := outThresholds[min3(nextT-1, 2)]
 	nextTierGoals = append(nextTierGoals, models.TierGoal{
 		Dimension:    "Output ratio",
@@ -872,25 +822,25 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		IsWeakest:    weakestDim == "output_ratio",
 	})
 
-	// Cache efficiency goal
-	cacheThresholds := []float64{40.0, 65.0, 85.0}
-	cacheTarget := cacheThresholds[min3(nextT-1, 2)]
+	// Agent delegation goal
+	agentThresholds := []float64{5.0, 15.0, 30.0}
+	agentTarget := agentThresholds[min3(nextT-1, 2)]
 	nextTierGoals = append(nextTierGoals, models.TierGoal{
-		Dimension:    "Cache efficiency",
-		CurrentValue: fmt.Sprintf("%.0f%%", cacheEffPct),
-		TargetValue:  fmt.Sprintf("%.0f%%+", cacheTarget),
-		Delta:        fmt.Sprintf("+%.0f%%", math.Max(0, cacheTarget-cacheEffPct)),
-		CurrentTier:  tierName(cacheEffT),
+		Dimension:    "Agent delegation",
+		CurrentValue: fmt.Sprintf("%.0f%%", agentUsagePct),
+		TargetValue:  fmt.Sprintf("%.0f%%+", agentTarget),
+		Delta:        fmt.Sprintf("+%.0f%%", math.Max(0, agentTarget-agentUsagePct)),
+		CurrentTier:  tierName(agentT),
 		NextTier:     tierName(nextT),
-		Met:          cacheEffT >= nextT,
-		IsWeakest:    weakestDim == "cache_efficiency",
+		Met:          agentT >= nextT,
+		IsWeakest:    weakestDim == "agent_delegation",
 	})
 
 	// Specificity goal
 	specThresholds := []float64{20.0, 40.0, 60.0}
 	specTarget := specThresholds[min3(nextT-1, 2)]
 	nextTierGoals = append(nextTierGoals, models.TierGoal{
-		Dimension:    "Specificity",
+		Dimension:    "Prompt specificity",
 		CurrentValue: fmt.Sprintf("%.0f%%", specificPct),
 		TargetValue:  fmt.Sprintf("%.0f%%+", specTarget),
 		Delta:        fmt.Sprintf("+%.0f%%", math.Max(0, specTarget-specificPct)),
@@ -900,23 +850,18 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		IsWeakest:    weakestDim == "specificity",
 	})
 
-	// Session hygiene goal (lower is better — turns)
-	hygieneThresholds := []float64{35.0, 20.0, 12.0} // Intermediate, Advanced, Expert ceiling
-	hygieneTarget := hygieneThresholds[min3(nextT-1, 2)]
-	hygieneMetGoal := hygieneT >= nextT
-	hygieneDelta := ""
-	if !hygieneMetGoal {
-		hygieneDelta = fmt.Sprintf("−%.1f turns", math.Max(0, avgTurns-hygieneTarget))
-	}
+	// Tool diversity goal
+	toolThresholds := []float64{3.0, 5.0, 7.0}
+	toolTarget := toolThresholds[min3(nextT-1, 2)]
 	nextTierGoals = append(nextTierGoals, models.TierGoal{
-		Dimension:    "Session hygiene",
-		CurrentValue: fmt.Sprintf("%.1f turns", avgTurns),
-		TargetValue:  fmt.Sprintf("<%.0f turns", hygieneTarget),
-		Delta:        hygieneDelta,
-		CurrentTier:  tierName(hygieneT),
+		Dimension:    "Tool breadth",
+		CurrentValue: fmt.Sprintf("%.1f tools", avgToolDiversity),
+		TargetValue:  fmt.Sprintf("%.0f+ tools", toolTarget),
+		Delta:        fmt.Sprintf("+%.1f tools", math.Max(0, toolTarget-avgToolDiversity)),
+		CurrentTier:  tierName(toolDivT),
 		NextTier:     tierName(nextT),
-		Met:          hygieneMetGoal,
-		IsWeakest:    weakestDim == "session_hygiene",
+		Met:          toolDivT >= nextT,
+		IsWeakest:    weakestDim == "tool_diversity",
 	})
 
 	// ── Avg prompt length (for legacy raw metric) ────────────────────────────
@@ -936,12 +881,48 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Build top tools list for Haiku context
+	type toolCount struct {
+		name  string
+		count int
+	}
+	// Build aggregate tool counts from the filtered session set
+	aggregateTools := map[string]int{}
+	for _, s := range sessions {
+		for tool, cnt := range s.ToolCounts {
+			aggregateTools[tool] += cnt
+		}
+	}
+	var toolList []toolCount
+	for name, cnt := range aggregateTools {
+		toolList = append(toolList, toolCount{name, cnt})
+	}
+	sort.Slice(toolList, func(i, j int) bool { return toolList[i].count > toolList[j].count })
+	var topToolStrs []string
+	for i, tc := range toolList {
+		if i >= 6 {
+			break
+		}
+		topToolStrs = append(topToolStrs, fmt.Sprintf("%s:%d", tc.name, tc.count))
+	}
+
+	metricsCtx := MetricsContext{
+		OutputRatio:      outputRatio,
+		AgentUsagePct:    agentUsagePct,
+		SpecificPct:      specificPct,
+		AvgToolDiversity: avgToolDiversity,
+		TopTools:         topToolStrs,
+		OverallTier:      overallTier,
+		TotalSessions:    len(sessions),
+		HighCtxSessions:  highCtxSessions,
+	}
+
 	if aiAnalysis == nil {
 		// Return immediately with aiLoading=true; trigger background analysis
 		aiLoading = true
 		prompts := samplePrompts(sessions, 15)
 		go func() {
-			analysis, err := callHaiku(prompts)
+			analysis, err := callHaiku(prompts, metricsCtx)
 			if err != nil {
 				return
 			}
@@ -951,24 +932,28 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 				PromptHash: promptHash(prompts),
 			})
 		}()
+	} else {
+		insights = aiAnalysis.Insights
 	}
 
 	writeJSON(w, models.InsightsResponse{
-		Score:           overallScore,
-		Tier:            overallTier,
-		Dimensions:      dimensions,
-		Insights:        insights,
-		CachePct:        math.Round(cacheEffPct*10) / 10,
-		AvgTurns:        math.Round(avgTurns*10) / 10,
-		HighCtxSessions: highCtxSessions,
-		SpecificPct:     math.Round(specificPct*10) / 10,
-		TotalSessions:   len(sessions),
-		AvgPromptLen:    math.Round(avgPromptLen),
-		OutputRatio:     math.Round(outputRatio*100) / 100,
-		OwnershipPct:    math.Round(ownershipPct*10) / 10,
-		NextTierGoals:   nextTierGoals,
-		AIAnalysis:      aiAnalysis,
-		AILoading:       aiLoading,
+		Score:            overallScore,
+		Tier:             overallTier,
+		Dimensions:       dimensions,
+		Insights:         insights,
+		CachePct:         math.Round(cacheEffPct*10) / 10,
+		AvgTurns:         math.Round(avgTurns*10) / 10,
+		HighCtxSessions:  highCtxSessions,
+		SpecificPct:      math.Round(specificPct*10) / 10,
+		TotalSessions:    len(sessions),
+		AvgPromptLen:     math.Round(avgPromptLen),
+		OutputRatio:      math.Round(outputRatio*100) / 100,
+		OwnershipPct:     math.Round(ownershipPct*10) / 10,
+		AgentUsagePct:    math.Round(agentUsagePct*10) / 10,
+		AvgToolDiversity: math.Round(avgToolDiversity*10) / 10,
+		NextTierGoals:    nextTierGoals,
+		AIAnalysis:       aiAnalysis,
+		AILoading:        aiLoading,
 	})
 }
 
@@ -1075,16 +1060,42 @@ func ownershipTier(pct float64) int {
 	}
 }
 
-// cacheEfficiencyTier returns 0-3 tier for cache hit %.
-// Higher cache % = better (less redundant token spend).
-// 99% cache efficiency (as seen in heavy Claude Code use) = Expert.
+// cacheEfficiencyTier kept for reference — no longer used in scoring.
 func cacheEfficiencyTier(pct float64) int {
 	switch {
 	case pct > 85:
-		return 3 // Expert
+		return 3
 	case pct > 65:
-		return 2 // Advanced
+		return 2
 	case pct > 40:
+		return 1
+	default:
+		return 0
+	}
+}
+
+// agentUsageTier returns 0-3 tier for % of sessions using the Agent tool.
+func agentUsageTier(pct float64) int {
+	switch {
+	case pct > 30:
+		return 3 // Expert: delegates most complex tasks to subagents
+	case pct > 15:
+		return 2 // Advanced
+	case pct > 5:
+		return 1 // Intermediate
+	default:
+		return 0 // Beginner
+	}
+}
+
+// toolDiversityTier returns 0-3 tier for average unique tools per session.
+func toolDiversityTier(avg float64) int {
+	switch {
+	case avg > 7:
+		return 3 // Expert: Agent, Read, Write, Edit, Bash, Grep, Glob, WebSearch…
+	case avg > 5:
+		return 2 // Advanced
+	case avg > 3:
 		return 1 // Intermediate
 	default:
 		return 0 // Beginner

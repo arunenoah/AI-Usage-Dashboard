@@ -84,7 +84,7 @@ func (a *Adapter) Parse(path string) (*models.Session, error) {
 				session.GitBranch = entry.GitBranch
 			}
 			if firstUser && entry.Message != nil {
-				for _, c := range entry.Message.Content {
+				for _, c := range entry.Message.ContentBlocks() {
 					if c.Type == "text" && c.Text != "" {
 						session.FirstPrompt = truncate(c.Text, 120)
 						firstUser = false
@@ -106,7 +106,7 @@ func (a *Adapter) Parse(path string) (*models.Session, error) {
 					session.TotalUsage.CacheReadInputTokens += u.CacheReadInputTokens
 					session.TotalUsage.CacheCreationInputTokens += u.CacheCreationInputTokens
 				}
-				for _, c := range entry.Message.Content {
+				for _, c := range entry.Message.ContentBlocks() {
 					if c.Type == "tool_use" && c.Name != "" {
 						session.ToolCounts[c.Name]++
 						// Capture sample inputs (up to 5 per tool)
@@ -189,7 +189,7 @@ func (a *Adapter) parseTurns(path string, maxTextLen int) ([]models.TurnEntry, e
 				continue
 			}
 			var text string
-			for _, c := range entry.Message.Content {
+			for _, c := range entry.Message.ContentBlocks() {
 				if c.Type == "text" && c.Text != "" {
 					text = truncateMaybe(c.Text, maxTextLen)
 					break
@@ -213,7 +213,7 @@ func (a *Adapter) parseTurns(path string, maxTextLen int) ([]models.TurnEntry, e
 			var toolCalls []string
 			var toolDetails []models.ToolDetail
 			toolInputs := make(map[string]string) // kept for backwards compat
-			for _, c := range entry.Message.Content {
+			for _, c := range entry.Message.ContentBlocks() {
 				if c.Type == "text" && c.Text != "" && text == "" {
 					text = truncateMaybe(c.Text, maxTextLen)
 				}

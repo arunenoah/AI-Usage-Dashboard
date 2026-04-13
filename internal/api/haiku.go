@@ -60,8 +60,20 @@ func promptHash(prompts []string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))[:16]
 }
 
-// callHaiku calls Claude Haiku with a sample of prompts and returns structured analysis.
-func callHaiku(promptSamples []string) (*models.HaikuAnalysis, error) {
+// MetricsContext holds computed metrics passed into Haiku for insight generation.
+type MetricsContext struct {
+	OutputRatio      float64
+	AgentUsagePct    float64
+	SpecificPct      float64
+	AvgToolDiversity float64
+	TopTools         []string // e.g. ["Bash:2917", "Read:1840"]
+	OverallTier      string
+	TotalSessions    int
+	HighCtxSessions  int
+}
+
+// callHaiku calls Claude Haiku with prompt samples + live metrics and returns structured analysis.
+func callHaiku(promptSamples []string, metrics MetricsContext) (*models.HaikuAnalysis, error) {
 	apiKey := os.Getenv("ANTHROPIC_API_KEY")
 	if apiKey == "" {
 		return nil, fmt.Errorf("ANTHROPIC_API_KEY not set")
@@ -75,28 +87,62 @@ func callHaiku(promptSamples []string) (*models.HaikuAnalysis, error) {
 		fmt.Fprintf(&sb, "%d. %s\n\n", i+1, p)
 	}
 
-	systemPrompt := `You are an expert at analyzing how developers use Claude Code.
-Analyze the user's prompts and return a JSON object with exactly this structure (no markdown, raw JSON only):
+	metricsBlock := fmt.Sprintf(`Current metrics for this developer:
+- Overall tier: %s
+- Output ratio: %.1f× (input→output tokens) [Expert = 3×+]
+- Agent delegation: %.0f%% of sessions use subagents [Expert = 30%%+]
+- Prompt specificity: %.0f%% of prompts reference exact files/functions [Expert = 60%%+]
+- Tool breadth: %.1f unique tools/session [Expert = 7+]
+- Top tools used: %s
+- Total sessions analysed: %d
+- Sessions over 50 turns: %d`,
+		metrics.OverallTier,
+		metrics.OutputRatio,
+		metrics.AgentUsagePct,
+		metrics.SpecificPct,
+		metrics.AvgToolDiversity,
+		strings.Join(metrics.TopTools, ", "),
+		metrics.TotalSessions,
+		metrics.HighCtxSessions,
+	)
+
+	systemPrompt := `You are an expert at analysing how developers use Claude Code.
+You will receive live usage metrics AND a sample of the developer's actual prompts.
+Generate actionable insights that are 100% specific to their real numbers and real prompt patterns.
+
+Return a JSON object with exactly this structure (raw JSON only, no markdown):
 {
-  "tier_justification": "one sentence explaining the overall tier",
-  "top_improvements": [
-    {"pattern": "what they do wrong", "example_fix": "before → after one-liner", "impact": "high"},
-    {"pattern": "second issue", "example_fix": "before → after", "impact": "medium"}
+  "tier_justification": "one sentence citing their actual weakest metric with its real value",
+  "insights": [
+    {
+      "type": "warning|info|success",
+      "title": "short specific title (not generic)",
+      "text": "2-3 sentences: what their data shows, why it matters, one concrete action referencing their actual tools and workflow"
+    }
   ],
-  "strengths": ["what they do well (max 2 items)"],
+  "strengths": ["one specific thing they do well, with their real value"],
   "rewrite": {
-    "original": "copy the weakest prompt verbatim",
-    "improved": "your improved version",
+    "original": "copy the weakest prompt from the sample verbatim",
+    "improved": "your improved version of that exact prompt",
     "why": "one sentence explanation"
   }
 }
-Only return the JSON. No explanation, no markdown fences.`
 
-	userMsg := fmt.Sprintf("Here are %d recent Claude Code prompts from this developer:\n\n%sAnalyze these prompts and return the JSON.", len(promptSamples), sb.String())
+Rules:
+- Generate 3-5 insights covering each metric dimension (output ratio, agent delegation, specificity, tool breadth)
+- Use their real numbers in every insight text (e.g. "Your 11% agent usage..." not "You underuse agents...")
+- Reference the actual tools they use most (from top tools list) in advice
+- For metrics at Expert tier, write a "success" insight celebrating that with the real value
+- For metrics below Advanced, write "warning" or "info" with a concrete next step
+- Never use generic advice that would apply to any user — always anchor to their actual data
+- The rewrite must use a real prompt from their sample, not a made-up example`
+
+	userMsg := fmt.Sprintf("%s\n\nRecent Claude Code prompts from this developer (%d total):\n\n%s\nAnalyze and return the JSON.",
+		metricsBlock, len(promptSamples), sb.String())
 
 	reqBody, _ := json.Marshal(map[string]any{
 		"model":      haikuModel,
-		"max_tokens": 1024,
+		"max_tokens": 2048,
 		"system":     systemPrompt,
 		"messages": []map[string]any{
 			{"role": "user", "content": userMsg},

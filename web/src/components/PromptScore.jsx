@@ -24,18 +24,18 @@ const INSIGHT_STYLE = {
 }
 
 const TIER_CRITERIA = {
-  Expert:       'Output >3×  ·  Cache >85%  ·  Specificity >60%  ·  Avg turns <12',
-  Advanced:     'Output >2×  ·  Cache >65%  ·  Specificity >40%  ·  Avg turns <20',
-  Intermediate: 'Output >1×  ·  Cache >40%  ·  Specificity >20%  ·  Avg turns <35',
+  Expert:       'Output >3×  ·  Agent >30%  ·  Specificity >60%  ·  Tools >7/session',
+  Advanced:     'Output >2×  ·  Agent >15%  ·  Specificity >40%  ·  Tools >5/session',
+  Intermediate: 'Output >1×  ·  Agent >5%   ·  Specificity >20%  ·  Tools >3/session',
   Beginner:     'Below Intermediate thresholds on one or more dimensions',
 }
 
-// Hardcoded community benchmarks (realistic p50 / p90 for active Claude Code devs)
+// Community benchmarks: realistic p50/p90 for active Claude Code developers
 const BENCHMARKS = {
-  'Output ratio':     { p50: 2.1,  p90: 4.5,  unit: '×',    higherIsBetter: true,  max: 6.0 },
-  'Cache efficiency': { p50: 65,   p90: 90,   unit: '%',    higherIsBetter: true,  max: 100 },
-  'Specificity':      { p50: 42,   p90: 72,   unit: '%',    higherIsBetter: true,  max: 100 },
-  'Session hygiene':  { p50: 22,   p90: 8,    unit: ' turns', higherIsBetter: false, max: 60 },
+  'Output ratio':      { p50: 2.1,  p90: 4.5, unit: '×', higherIsBetter: true,  max: 6.0,  dataKey: 'output_ratio' },
+  'Agent delegation':  { p50: 12,   p90: 45,  unit: '%', higherIsBetter: true,  max: 100,  dataKey: 'agent_usage_pct' },
+  'Prompt specificity':{ p50: 42,   p90: 72,  unit: '%', higherIsBetter: true,  max: 100,  dataKey: 'specific_pct' },
+  'Tool breadth':      { p50: 4.5,  p90: 8,   unit: '',  higherIsBetter: true,  max: 12,   dataKey: 'avg_tool_diversity' },
 }
 
 const TIER_RANK = { Beginner: 0, Intermediate: 1, Advanced: 2, Expert: 3 }
@@ -120,26 +120,27 @@ export default function PromptScore({ days = 30 }) {
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 11 }}>
           {(data.dimensions || []).map((d, i) => (
-            <div key={d.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <span style={{ fontSize: 10, color: '#7b809a' }}>{d.label}</span>
-                  <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                    <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', fontWeight: 700, color: DIMENSION_COLORS[i % 4] }}>{d.value}</span>
-                    <span style={{
-                      fontSize: 8, fontWeight: 700, padding: '1px 5px', borderRadius: 8,
-                      background: (TIER_COLOR[d.tier] || '#9baabf') + '18', color: TIER_COLOR[d.tier] || '#9baabf',
-                    }}>{d.tier}</span>
-                  </div>
-                </div>
-                <div style={{ height: 5, background: '#f0f2f5', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%', width: `${d.score}%`,
-                    background: DIMENSION_COLORS[i % 4], borderRadius: 3,
-                    transition: 'width 0.6s ease',
-                  }} />
+            <div key={d.label}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                <span style={{ fontSize: 10, color: '#7b809a' }}>{d.label}</span>
+                <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                  <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', fontWeight: 700, color: DIMENSION_COLORS[i % 4] }}>{d.value}</span>
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, padding: '1px 5px', borderRadius: 8,
+                    background: (TIER_COLOR[d.tier] || '#9baabf') + '18', color: TIER_COLOR[d.tier] || '#9baabf',
+                  }}>{d.tier}</span>
                 </div>
               </div>
+              <div style={{ height: 5, background: '#f0f2f5', borderRadius: 3, overflow: 'hidden', marginBottom: d.description ? 3 : 0 }}>
+                <div style={{
+                  height: '100%', width: `${d.score}%`,
+                  background: DIMENSION_COLORS[i % 4], borderRadius: 3,
+                  transition: 'width 0.6s ease',
+                }} />
+              </div>
+              {d.description && (
+                <div style={{ fontSize: 9, color: '#b0bac7', lineHeight: 1.4 }}>{d.description}</div>
+              )}
             </div>
           ))}
         </div>
@@ -168,10 +169,11 @@ export default function PromptScore({ days = 30 }) {
       {/* Raw metric pills */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
         <MetaPill label="Output ratio" value={`${data.output_ratio}×`} color="#2563eb" />
-        <MetaPill label="Avg turns" value={data.avg_turns} color="#8b5cf6" />
-        <MetaPill label="Specific" value={`${data.specific_pct}%`} color="#22c55e" />
+        <MetaPill label="Agent sessions" value={`${data.agent_usage_pct}%`} color="#8b5cf6" />
+        <MetaPill label="Avg tools" value={data.avg_tool_diversity} color="#f59e0b" />
+        <MetaPill label="Avg turns" value={data.avg_turns} color="#9baabf" />
         {data.high_ctx_sessions > 0 && (
-          <MetaPill label="Long sessions" value={data.high_ctx_sessions} color="#ef4444" />
+          <MetaPill label="Long sessions" value={data.high_ctx_sessions} color="#64748b" />
         )}
       </div>
 
@@ -403,32 +405,11 @@ function NextTierCard({ goals, tier, nextTier }) {
 
 // ── Peer Comparison ───────────────────────────────────────────────────────────
 function PeerComparison({ data, tierColor }) {
-  const rows = [
-    {
-      label: 'Output ratio',
-      user: data.output_ratio,
-      bm: BENCHMARKS['Output ratio'],
-      getValue: () => data.output_ratio,
-    },
-    {
-      label: 'Cache eff.',
-      user: data.cache_pct,
-      bm: BENCHMARKS['Cache efficiency'],
-      getValue: () => data.cache_pct,
-    },
-    {
-      label: 'Specificity',
-      user: data.specific_pct,
-      bm: BENCHMARKS['Specificity'],
-      getValue: () => data.specific_pct,
-    },
-    {
-      label: 'Avg turns',
-      user: data.avg_turns,
-      bm: BENCHMARKS['Session hygiene'],
-      getValue: () => data.avg_turns,
-    },
-  ]
+  const rows = Object.entries(BENCHMARKS).map(([label, bm]) => ({
+    label,
+    user: data[bm.dataKey] ?? 0,
+    bm,
+  }))
 
   return (
     <div style={{ marginBottom: 16, background: '#f8f9fa', borderRadius: 12, padding: '12px 14px' }}>

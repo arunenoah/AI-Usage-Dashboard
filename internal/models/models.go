@@ -7,10 +7,11 @@ import (
 
 // InsightDimension is one scored dimension in the prompt quality breakdown
 type InsightDimension struct {
-	Label string `json:"label"`
-	Score int    `json:"score"`
-	Tier  string `json:"tier"`
-	Value string `json:"value"`
+	Label       string `json:"label"`
+	Score       int    `json:"score"`
+	Tier        string `json:"tier"`
+	Value       string `json:"value"`
+	Description string `json:"description,omitempty"` // plain-English explanation
 }
 
 // Insight is one actionable finding
@@ -45,9 +46,11 @@ type InsightsResponse struct {
 	SpecificPct     float64            `json:"specific_pct"`
 	TotalSessions   int                `json:"total_sessions"`
 	AvgPromptLen    float64            `json:"avg_prompt_len"`
-	OutputRatio     float64            `json:"output_ratio"`
-	OwnershipPct    float64            `json:"ownership_pct"`
-	NextTierGoals   []TierGoal         `json:"next_tier_goals,omitempty"`
+	OutputRatio      float64            `json:"output_ratio"`
+	OwnershipPct     float64            `json:"ownership_pct"`
+	AgentUsagePct    float64            `json:"agent_usage_pct"`
+	AvgToolDiversity float64            `json:"avg_tool_diversity"`
+	NextTierGoals    []TierGoal         `json:"next_tier_goals,omitempty"`
 	AIAnalysis      *HaikuAnalysis     `json:"ai_analysis,omitempty"`
 	AILoading       bool               `json:"ai_loading,omitempty"`
 }

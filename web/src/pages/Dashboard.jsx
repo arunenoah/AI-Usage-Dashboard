@@ -167,19 +167,19 @@ export default function Dashboard() {
     <div style={{ padding: 40, color: '#7b809a', fontFamily: 'Figtree', fontSize: 14 }}>Loading sessions…</div>
   )
 
-  const totalTokens = (stats.total_cache_read_tokens || 0) + (stats.total_cache_creation_tokens || 0) +
-    (stats.total_input_tokens || 0) + (stats.total_output_tokens || 0)
-
   const periodLabel = filter.from
     ? `${filter.from} → ${filter.to}`
     : filter.days === 0 ? 'All Time'
     : filter.days === 1 ? 'Today'
     : `Last ${filter.days} Days`
 
-  // Useful derived metrics
-  const cacheEfficiency = stats.total_cache_read_tokens > 0
-    ? Math.round((stats.total_cache_read_tokens / (stats.total_cache_read_tokens + stats.total_input_tokens)) * 100)
-    : 0
+  // Derived metrics
+  const activeDays = (stats.daily || []).filter(d => (d.sessions || 0) > 0).length || 1
+  const avgCostPerDay = (stats.total_cost_usd || 0) / activeDays
+  const avgSessionTokens = stats.avg_session_tokens || 0
+  const toolCounts = stats.tool_counts || {}
+  const totalToolCalls = Object.values(toolCounts).reduce((s, n) => s + n, 0)
+  const topTool = Object.entries(toolCounts).sort((a, b) => b[1] - a[1])[0]
 
   const currentDays = filter.from ? null : filter.days
 
@@ -198,42 +198,41 @@ export default function Dashboard() {
 
       <LiveBanner session={stats.active_session} liveTokens={liveTokens} />
 
-      {/* Stat cards — developer-meaningful metrics */}
+      {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
         <StatCard
           label="Sessions"
           value={stats.total_sessions}
           icon="box"
           colorClass="si-blue"
-          delta={filter.days !== 0 ? `of ${stats.total_all_sessions} total` : undefined}
+          delta={`${activeDays} active day${activeDays !== 1 ? 's' : ''} this period`}
         />
         <StatCard
           label="Total Spend"
           value={`$${(stats.total_cost_usd || 0).toFixed(2)}`}
           icon="credit-card"
           colorClass="si-purple"
-          delta={`avg $${(stats.avg_session_cost_usd || 0).toFixed(2)} / session`}
+          delta={`avg $${avgCostPerDay.toFixed(2)} / day`}
         />
         <StatCard
-          label="Output Generated"
-          value={fmt(stats.total_output_tokens)}
+          label="Avg Session"
+          value={`$${(stats.avg_session_cost_usd || 0).toFixed(2)}`}
           icon="cpu"
           colorClass="si-orange"
-          delta={`${fmt(stats.total_input_tokens)} fresh input`}
+          delta={`${fmt(avgSessionTokens)} tokens avg`}
         />
         <StatCard
-          label="Cache Efficiency"
-          value={`${cacheEfficiency}%`}
+          label="Tool Calls"
+          value={fmt(totalToolCalls)}
           icon="bar-chart"
           colorClass="si-teal"
-          delta={`${fmt(stats.total_cache_read_tokens)} tokens reused`}
+          delta={topTool ? `top: ${topTool[0]} (${fmt(topTool[1])})` : undefined}
         />
       </div>
 
       {/* Token chart — synced with global date filter */}
       <TokenChart
         daily={stats.daily || []}
-        totalTokens={totalTokens}
         currentDays={currentDays}
         onRangeChange={handleChartRangeChange}
       />
