@@ -12,34 +12,41 @@ import (
 	"github.com/ai-sessions/ai-sessions/internal/ws"
 )
 
+// Target pairs a directory to watch with the adapter responsible for parsing files in that directory.
+type Target struct {
+	Dir     string
+	Adapter adapters.Adapter
+}
+
 type Watcher struct {
-	adapter adapters.Adapter
+	targets []Target
 	store   *store.Store
 	hub     *ws.Hub
 }
 
-func New(adapter adapters.Adapter, store *store.Store, hub *ws.Hub) *Watcher {
-	return &Watcher{adapter: adapter, store: store, hub: hub}
+// New creates a Watcher for one or more adapter targets.
+// Each Target specifies the root directory to watch and the adapter that can parse files within it.
+func New(store *store.Store, hub *ws.Hub, targets ...Target) *Watcher {
+	return &Watcher{targets: targets, store: store, hub: hub}
 }
 
 func (w *Watcher) Start() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-	watchDir := filepath.Join(home, ".claude", "projects")
-
 	fw, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
 	}
 
-	_ = filepath.Walk(watchDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || !info.IsDir() {
-			return nil
+	for _, t := range w.targets {
+		if t.Dir == "" {
+			continue
 		}
-		return fw.Add(path)
-	})
+		_ = filepath.Walk(t.Dir, func(path string, info os.FileInfo, err error) error {
+			if err != nil || !info.IsDir() {
+				return nil
+			}
+			return fw.Add(path)
+		})
+	}
 
 	go func() {
 		defer fw.Close()
@@ -68,8 +75,13 @@ func (w *Watcher) Start() error {
 	return nil
 }
 
+// handleChange finds the right adapter for the changed file and re-parses it.
 func (w *Watcher) handleChange(path string) {
-	sess, err := w.adapter.Parse(path)
+	adapter := w.adapterFor(path)
+	if adapter == nil {
+		return
+	}
+	sess, err := adapter.Parse(path)
 	if err != nil {
 		log.Printf("parse error for %s: %v", path, err)
 		return
@@ -79,6 +91,18 @@ func (w *Watcher) handleChange(path string) {
 		"session_id":   sess.ID,
 		"input_tokens": sess.TotalUsage.InputTokens,
 		"project_dir":  sess.ProjectDir,
+		"source":       sess.Source,
 	})
-	log.Printf("session updated: %s (%d input tokens)", sess.ID, sess.TotalUsage.InputTokens)
+	log.Printf("session updated: %s [%s] (%d input tokens)", sess.ID, sess.Source, sess.TotalUsage.InputTokens)
 }
+
+// adapterFor returns the adapter whose watch directory contains the given file path.
+func (w *Watcher) adapterFor(path string) adapters.Adapter {
+	for _, t := range w.targets {
+		if strings.HasPrefix(path, t.Dir) {
+			return t.Adapter
+		}
+	}
+	return nil
+}
+

@@ -40,18 +40,21 @@ func (s *Store) Get(id string) *models.Session {
 	return s.sessions[id]
 }
 
-func (s *Store) LoadAll(adapter adapters.Adapter) error {
+// LoadAll loads sessions from one or more adapters.
+func (s *Store) LoadAll(adapters_ ...adapters.Adapter) error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
-	paths := adapter.Detect(home)
-	for _, p := range paths {
-		sess, err := adapter.Parse(p)
-		if err != nil {
-			continue
+	for _, adapter := range adapters_ {
+		paths := adapter.Detect(home)
+		for _, p := range paths {
+			sess, err := adapter.Parse(p)
+			if err != nil {
+				continue
+			}
+			s.Upsert(sess)
 		}
-		s.Upsert(sess)
 	}
 	return nil
 }
@@ -76,15 +79,45 @@ func (s *Store) Stats() models.Stats {
 // StatsForDays returns stats filtered to the last N days (0 = all time).
 func (s *Store) StatsForDays(days int) models.Stats {
 	if days <= 0 {
-		return s.StatsForRange(time.Time{}, time.Time{})
+		return s.computeStats(s.Sessions(), time.Time{}, time.Time{})
 	}
 	from := time.Now().Truncate(24 * time.Hour).AddDate(0, 0, -(days - 1))
-	return s.StatsForRange(from, time.Time{})
+	return s.computeStats(s.Sessions(), from, time.Time{})
 }
 
 // StatsForRange returns stats for sessions between from and to (zero = unbounded).
 func (s *Store) StatsForRange(from, to time.Time) models.Stats {
-	allSessions := s.Sessions()
+	return s.computeStats(s.Sessions(), from, to)
+}
+
+// StatsForSourceDays returns stats for a specific source adapter over the last N days (0 = all time).
+func (s *Store) StatsForSourceDays(source string, days int) models.Stats {
+	if days <= 0 {
+		return s.StatsForSourceRange(source, time.Time{}, time.Time{})
+	}
+	from := time.Now().Truncate(24 * time.Hour).AddDate(0, 0, -(days - 1))
+	return s.StatsForSourceRange(source, from, time.Time{})
+}
+
+// StatsForSourceRange returns stats filtered to a specific source adapter and date range.
+func (s *Store) StatsForSourceRange(source string, from, to time.Time) models.Stats {
+	return s.computeStats(s.SessionsBySource(source), from, to)
+}
+
+// SessionsBySource returns all sessions from a specific adapter source, sorted newest first.
+func (s *Store) SessionsBySource(source string) []*models.Session {
+	all := s.Sessions()
+	out := make([]*models.Session, 0, len(all))
+	for _, sess := range all {
+		if sess.Source == source {
+			out = append(out, sess)
+		}
+	}
+	return out
+}
+
+// computeStats aggregates stats over the provided sessions slice, filtered by date range.
+func (s *Store) computeStats(allSessions []*models.Session, from, to time.Time) models.Stats {
 	if len(allSessions) == 0 {
 		return models.Stats{ToolCounts: make(map[string]int), Daily: []models.DailyStats{}, Projects: []string{}}
 	}
@@ -104,17 +137,16 @@ func (s *Store) StatsForRange(from, to time.Time) models.Stats {
 	}
 
 	st := models.Stats{
-		TotalSessions: len(sessions),
+		TotalSessions:    len(sessions),
 		TotalAllSessions: len(allSessions),
-		ToolCounts:    make(map[string]int),
+		ToolCounts:       make(map[string]int),
 	}
 
-	// Active session: modified within last 30 minutes (use all sessions for live detection)
+	// Active session: modified within last 30 minutes
 	if len(allSessions) > 0 && time.Since(allSessions[0].EndTime) < 30*time.Minute {
 		st.ActiveSession = allSessions[0]
 	}
 
-	// Unique projects
 	projectSet := make(map[string]struct{})
 	dailyMap := make(map[string]*models.DailyStats)
 

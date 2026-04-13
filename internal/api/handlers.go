@@ -14,13 +14,15 @@ import (
 	"time"
 
 	"github.com/ai-sessions/ai-sessions/internal/adapters/claudecode"
+	"github.com/ai-sessions/ai-sessions/internal/adapters/copilot"
 	"github.com/ai-sessions/ai-sessions/internal/models"
 	"github.com/ai-sessions/ai-sessions/internal/store"
 )
 
 type Handler struct {
-	Store   *store.Store
-	Adapter *claudecode.Adapter
+	Store          *store.Store
+	Adapter        *claudecode.Adapter
+	CopilotAdapter *copilot.Adapter
 }
 
 func (h *Handler) Register(mux *http.ServeMux) {
@@ -35,6 +37,10 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/image", h.serveImage)
 	mux.HandleFunc("/api/health", h.health)
 	mux.HandleFunc("/api/tasks", h.getTasks)
+	// GitHub Copilot
+	mux.HandleFunc("/api/copilot/stats", h.getCopilotStats)
+	mux.HandleFunc("/api/copilot/sessions", h.getCopilotSessions)
+	mux.HandleFunc("/api/copilot/sessions/", h.getCopilotSessionDetail)
 }
 
 func (h *Handler) getStats(w http.ResponseWriter, r *http.Request) {
@@ -1467,6 +1473,110 @@ func (h *Handler) serveImage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, map[string]string{"status": "ok"})
+}
+
+// ── GitHub Copilot handlers ───────────────────────────────────────────────────
+
+// getCopilotStats handles GET /api/copilot/stats -- same query params as /api/stats
+func (h *Handler) getCopilotStats(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	fromStr := r.URL.Query().Get("from")
+	toStr := r.URL.Query().Get("to")
+	days, _ := strconv.Atoi(r.URL.Query().Get("days"))
+
+	if fromStr != "" || toStr != "" {
+		var from, to time.Time
+		if fromStr != "" {
+			from, _ = time.ParseInLocation("2006-01-02", fromStr, time.Local)
+		}
+		if toStr != "" {
+			to, _ = time.ParseInLocation("2006-01-02", toStr, time.Local)
+			to = to.Add(24*time.Hour - time.Second)
+		}
+		writeJSON(w, h.Store.StatsForSourceRange("github-copilot", from, to))
+		return
+	}
+	writeJSON(w, h.Store.StatsForSourceDays("github-copilot", days))
+}
+
+// getCopilotSessions handles GET /api/copilot/sessions -- same params as /api/sessions
+func (h *Handler) getCopilotSessions(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	sessions := h.Store.SessionsBySource("github-copilot")
+
+	if project := r.URL.Query().Get("project"); project != "" {
+		filtered := sessions[:0]
+		for _, s := range sessions {
+			if strings.Contains(s.ProjectDir, project) {
+				filtered = append(filtered, s)
+			}
+		}
+		sessions = filtered
+	}
+
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 500 {
+		limit = 20
+	}
+	start := (page - 1) * limit
+	end := start + limit
+	if start >= len(sessions) {
+		writeJSON(w, map[string]any{"sessions": []any{}, "total": len(sessions), "page": page})
+		return
+	}
+	if end > len(sessions) {
+		end = len(sessions)
+	}
+	writeJSON(w, map[string]any{
+		"sessions": sessions[start:end],
+		"total":    len(sessions),
+		"page":     page,
+	})
+}
+
+// getCopilotSessionDetail handles GET /api/copilot/sessions/:id/turns
+func (h *Handler) getCopilotSessionDetail(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/copilot/sessions/"), "/")
+	if len(parts) == 0 || parts[0] == "" {
+		http.Error(w, "session ID required", http.StatusBadRequest)
+		return
+	}
+	sessionID := parts[0]
+
+	sess := h.Store.Get(sessionID)
+	if sess == nil {
+		http.Error(w, "session not found", http.StatusNotFound)
+		return
+	}
+	if sess.Source != "github-copilot" {
+		http.Error(w, "not a copilot session", http.StatusBadRequest)
+		return
+	}
+
+	turns, err := h.CopilotAdapter.ParseTurns(sess.FilePath)
+	if err != nil {
+		http.Error(w, "parse error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, map[string]any{
+		"session": sess,
+		"turns":   turns,
+	})
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

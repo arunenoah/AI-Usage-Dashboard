@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar.jsx'
+import Copilot from './pages/Copilot.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Sessions from './pages/Sessions.jsx'
 import Settings from './pages/Settings.jsx'
@@ -33,6 +34,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/sessions" element={<Sessions />} />
+          <Route path="/copilot" element={<Copilot />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/tasks" element={<Tasks />} />
         </Routes>

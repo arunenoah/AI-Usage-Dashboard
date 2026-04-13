@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 const TOOL_BADGE = {
-  'claude-code': { label: 'CLAUDE', bg: '#EDE7F6', color: '#7B1FA2' },
-  cursor:        { label: 'CURSOR', bg: '#E3F2FD', color: '#1565C0' },
-  copilot:       { label: 'COPILOT', bg: '#F5F5F5', color: '#616161' },
-  windsurf:      { label: 'WINDSURF', bg: '#E8F5E9', color: '#2E7D32' },
+  'claude-code':    { label: 'CLAUDE',  bg: '#EDE7F6', color: '#7B1FA2' },
+  cursor:           { label: 'CURSOR',  bg: '#E3F2FD', color: '#1565C0' },
+  copilot:          { label: 'COPILOT', bg: '#E8F0FE', color: '#1A73E8' },
+  'github-copilot': { label: 'COPILOT', bg: '#E8F0FE', color: '#1A73E8' },
+  windsurf:         { label: 'WINDSURF', bg: '#E8F5E9', color: '#2E7D32' },
 }
 
 function toolBadge(source) {
@@ -82,7 +83,7 @@ export default function SessionTable({ sessions = [], total = 0, onSessionClick,
     const matchTab = tab === 'All' ||
       (tab === 'Claude' && s.source === 'claude-code') ||
       (tab === 'Cursor' && s.source === 'cursor') ||
-      (tab === 'Copilot' && s.source === 'copilot')
+      (tab === 'Copilot' && (s.source === 'copilot' || s.source === 'github-copilot'))
     const matchProject = selectedProject === 'all' || s.project_dir === selectedProject
     return matchQ && matchTab && matchProject
   }), [sessions, query, tab, selectedProject])
@@ -203,7 +204,9 @@ export default function SessionTable({ sessions = [], total = 0, onSessionClick,
                   </td>
                   <td style={{ padding: '10px 10px' }}>{branchBadge(branch)}</td>
                   <td style={{ padding: '10px 10px', fontFamily: 'JetBrains Mono', fontSize: 11, color: '#4CAF50', fontWeight: 600 }}>
-                    ${cost.toFixed(3)}
+                    {s.source === 'github-copilot'
+                      ? <span style={{ color: '#9baabf', fontSize: 10, fontWeight: 500 }}>flat‑rate</span>
+                      : `$${cost.toFixed(3)}`}
                   </td>
                   <td style={{ padding: '10px 10px', fontFamily: 'JetBrains Mono', fontSize: 12, fontWeight: 700, color: scoreColor(score) }}>
                     {score}
