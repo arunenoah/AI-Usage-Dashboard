@@ -10,6 +10,7 @@ import ContextHealth from '../components/ContextHealth.jsx'
 import SessionDetail from '../components/SessionDetail.jsx'
 import SystemInfoCard from '../components/SystemInfoCard.jsx'
 import RecentPrompts from '../components/RecentPrompts.jsx'
+import TasksPanel from '../components/TasksPanel.jsx'
 import { useWebSocket } from '../hooks/useWebSocket.js'
 
 // ─── Date range presets ───────────────────────────────────────────────────────
@@ -237,7 +238,7 @@ export default function Dashboard() {
         onRangeChange={handleChartRangeChange}
       />
 
-      {/* Session explorer + Prompt insights */}
+      {/* Session explorer + Prompt insights + Tasks */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 20 }}>
         <SessionTable
           sessions={sessions}
@@ -245,7 +246,10 @@ export default function Dashboard() {
           onSessionClick={setSelectedSession}
           projects={stats.projects || []}
         />
-        <PromptScore days={filter.from ? 90 : (filter.days || 30)} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <PromptScore days={filter.from ? 90 : (filter.days || 30)} />
+          <TasksPanel />
+        </div>
       </div>
 
       {/* Tool usage + Hourly activity */}

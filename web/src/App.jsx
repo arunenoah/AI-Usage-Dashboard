@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Sessions from './pages/Sessions.jsx'
 import Settings from './pages/Settings.jsx'
+import Tasks from './pages/Tasks.jsx'
 
 const SIDEBAR_EXPANDED = 240
 const SIDEBAR_COLLAPSED = 68
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/tasks" element={<Tasks />} />
         </Routes>
       </main>
     </div>
