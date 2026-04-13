@@ -41,6 +41,59 @@ const BENCHMARKS = {
 const TIER_RANK = { Beginner: 0, Intermediate: 1, Advanced: 2, Expert: 3 }
 const NEXT_TIER = { Beginner: 'Intermediate', Intermediate: 'Advanced', Advanced: 'Expert', Expert: null }
 
+// Beginner-friendly explanations for each dimension and metric
+const DIMENSION_HELP = {
+  'Output ratio': 'How much code Claude writes compared to what you type. A ratio of 2× means Claude produces twice as much output as your input. Higher = you\'re leveraging Claude to do more heavy lifting.',
+  'Agent delegation': 'The percentage of your sessions where you dispatched a subagent (a background worker) to handle part of the task. Using agents for complex tasks is a sign of advanced Claude Code usage.',
+  'Prompt specificity': 'How often your first message references exact file names, functions, or line numbers. Specific prompts help Claude skip searching and jump straight to the right code.',
+  'Tool breadth': 'The average number of different tools (Read, Write, Bash, Edit, Grep, Agent, etc.) used per session. Experts use Claude Code\'s full toolbox rather than relying on just one or two tools.',
+}
+
+const METRIC_HELP = {
+  'Output ratio': 'Output tokens ÷ input tokens. Measures how much work Claude does per prompt you send.',
+  'Agent sessions': 'Percentage of sessions that used subagents — background workers that handle tasks in parallel.',
+  'Avg tools': 'Average number of unique tool types used per session. More tools = more versatile usage.',
+  'Avg turns': 'Average number of back-and-forth messages per session. Longer sessions often mean deeper, more complex work.',
+  'Long sessions': 'Sessions that exceeded 70% of the context window. These are your most intensive coding sessions.',
+}
+
+// Tooltip component with info icon
+function InfoTip({ text }) {
+  const [show, setShow] = React.useState(false)
+  const ref = React.useRef(null)
+  const tipRef = React.useRef(null)
+
+  return (
+    <span
+      ref={ref}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+      style={{ position: 'relative', display: 'inline-flex', cursor: 'help', marginLeft: 3, verticalAlign: 'middle' }}
+    >
+      <span style={{
+        width: 13, height: 13, borderRadius: '50%', background: '#e8eaf0',
+        display: 'inline-grid', placeItems: 'center',
+        fontSize: 8, fontWeight: 800, color: '#7b809a', lineHeight: 1,
+      }}>?</span>
+      {show && (
+        <div ref={tipRef} style={{
+          position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)',
+          marginBottom: 6, padding: '8px 10px', borderRadius: 8,
+          background: '#344767', color: '#fff', fontSize: 10, lineHeight: 1.5,
+          width: 220, zIndex: 100, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+          pointerEvents: 'none',
+        }}>
+          {text}
+          <div style={{
+            position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+            width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '5px solid #344767',
+          }} />
+        </div>
+      )}
+    </span>
+  )
+}
+
 export default function PromptScore({ days = 30 }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -122,7 +175,10 @@ export default function PromptScore({ days = 30 }) {
           {(data.dimensions || []).map((d, i) => (
             <div key={d.label}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                <span style={{ fontSize: 10, color: '#7b809a' }}>{d.label}</span>
+                <span style={{ fontSize: 10, color: '#7b809a', display: 'flex', alignItems: 'center' }}>
+                  {d.label}
+                  {DIMENSION_HELP[d.label] && <InfoTip text={DIMENSION_HELP[d.label]} />}
+                </span>
                 <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                   <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', fontWeight: 700, color: DIMENSION_COLORS[i % 4] }}>{d.value}</span>
                   <span style={{
@@ -312,14 +368,118 @@ export default function PromptScore({ days = 30 }) {
   )
 }
 
+// ── Examples Slide-over Panel ─────────────────────────────────────────────────
+function ExamplesPanel({ goal, onClose }) {
+  if (!goal) return null
+  const color = goal.is_weakest ? '#ef4444' : '#f59e0b'
+  const help = DIMENSION_HELP[goal.dimension]
+
+  return (
+    <div
+      onClick={e => e.target === e.currentTarget && onClose()}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 600, display: 'flex', justifyContent: 'flex-end' }}
+    >
+      <div style={{
+        width: 520, height: '100vh', background: '#fff',
+        boxShadow: '-8px 0 40px rgba(0,0,0,0.14)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #f0f2f5' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#344767' }}>
+                How to improve: {goal.dimension}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                <span style={{ fontSize: 12, fontFamily: 'JetBrains Mono', color: '#7b809a' }}>{goal.current_value}</span>
+                <span style={{ fontSize: 11, color: '#c4cdd6' }}>→</span>
+                <span style={{ fontSize: 12, fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#344767' }}>{goal.target_value}</span>
+                {goal.delta && (
+                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 8, fontWeight: 700, background: color + '18', color }}>
+                    {goal.delta} needed
+                  </span>
+                )}
+              </div>
+            </div>
+            <button onClick={onClose} style={{ fontSize: 22, color: '#9baabf', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>×</button>
+          </div>
+        </div>
+
+        {/* Scrollable content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+          {/* What this metric means */}
+          {help && (
+            <div style={{ background: '#f8f9fa', borderRadius: 10, padding: '12px 14px', marginBottom: 20 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>
+                What this measures
+              </div>
+              <div style={{ fontSize: 12, color: '#344767', lineHeight: 1.6 }}>{help}</div>
+            </div>
+          )}
+
+          {/* Real examples from conversations */}
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#344767', marginBottom: 12 }}>
+            From your conversations
+          </div>
+          <div style={{ fontSize: 11, color: '#7b809a', marginBottom: 16, lineHeight: 1.4 }}>
+            These are real prompts from your recent sessions. See how small changes can improve your {goal.dimension.toLowerCase()}.
+          </div>
+
+          {(goal.examples || []).map((ex, j) => (
+            <div key={j} style={{ marginBottom: 20, background: '#fafbfc', borderRadius: 10, border: '1px solid #f0f2f5', overflow: 'hidden' }}>
+              {/* Bad — what you typed */}
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f2f5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <span style={{ width: 18, height: 18, borderRadius: 5, background: '#FEECEC', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 800, color: '#ef4444' }}>✕</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', letterSpacing: 0.5 }}>What you typed</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#7b809a', fontFamily: 'JetBrains Mono', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {ex.bad}
+                </div>
+              </div>
+
+              {/* Good — better version */}
+              <div style={{ padding: '12px 16px', background: '#F0FDF4', borderBottom: '1px solid #f0f2f5' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <span style={{ width: 18, height: 18, borderRadius: 5, background: '#DCFCE7', display: 'grid', placeItems: 'center', fontSize: 9, fontWeight: 800, color: '#22c55e' }}>✓</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: 0.5 }}>Better version</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#344767', fontFamily: 'JetBrains Mono', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {ex.good}
+                </div>
+              </div>
+
+              {/* Why */}
+              <div style={{ padding: '10px 16px', background: '#fff' }}>
+                <div style={{ fontSize: 11, color: '#7b809a', lineHeight: 1.5, fontStyle: 'italic' }}>
+                  {ex.why}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {(!goal.examples || goal.examples.length === 0) && (
+            <div style={{ textAlign: 'center', padding: '30px 0', color: '#9baabf', fontSize: 12 }}>
+              No matching examples found in recent sessions.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Next Tier Card ────────────────────────────────────────────────────────────
 function NextTierCard({ goals, tier, nextTier }) {
+  const [selectedGoal, setSelectedGoal] = useState(null)
   const unmet = goals.filter(g => !g.met)
   const met = goals.filter(g => g.met)
   const nextColor = TIER_COLOR[nextTier] || '#1A73E8'
   const nextBg = TIER_BG[nextTier] || '#EBF3FF'
 
   return (
+    <>
     <div style={{ background: nextBg, border: `1px solid ${nextColor}25`, borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -348,16 +508,28 @@ function NextTierCard({ goals, tier, nextTier }) {
               {g.met ? '✓' : g.is_weakest ? '!' : '·'}
             </span>
 
-            {/* Dimension name */}
+            {/* Dimension name + examples link */}
             <span style={{
               fontSize: 11, color: '#344767', flex: 1,
-              fontWeight: g.is_weakest ? 700 : 500,
+              fontWeight: g.is_weakest ? 700 : 500, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4,
             }}>
               {g.dimension}
+              {DIMENSION_HELP[g.dimension] && <InfoTip text={DIMENSION_HELP[g.dimension]} />}
               {g.is_weakest && (
-                <span style={{ marginLeft: 6, fontSize: 9, background: '#FEECEC', color: '#ef4444', padding: '1px 5px', borderRadius: 6, fontWeight: 700 }}>
+                <span style={{ fontSize: 9, background: '#FEECEC', color: '#ef4444', padding: '1px 5px', borderRadius: 6, fontWeight: 700 }}>
                   blocking
                 </span>
+              )}
+              {!g.met && g.examples && g.examples.length > 0 && (
+                <button
+                  onClick={() => setSelectedGoal(g)}
+                  style={{
+                    fontSize: 9, fontWeight: 600, color: '#1A73E8', background: 'none', border: 'none',
+                    cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: 2,
+                  }}
+                >
+                  examples →
+                </button>
               )}
             </span>
 
@@ -400,6 +572,10 @@ function NextTierCard({ goals, tier, nextTier }) {
         </div>
       )}
     </div>
+
+    {/* Examples slide-over panel */}
+    {selectedGoal && <ExamplesPanel goal={selectedGoal} onClose={() => setSelectedGoal(null)} />}
+    </>
   )
 }
 
@@ -440,7 +616,10 @@ function PeerComparison({ data, tierColor }) {
 
           return (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 10, color: '#7b809a', width: 74, flexShrink: 0 }}>{label}</span>
+              <span style={{ fontSize: 10, color: '#7b809a', width: 82, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                {label}
+                {DIMENSION_HELP[label] && <InfoTip text={DIMENSION_HELP[label]} />}
+              </span>
               <div style={{ flex: 1, height: 4, background: '#e8eaf0', borderRadius: 2, position: 'relative' }}>
                 {/* P90 zone */}
                 <div style={{
@@ -495,6 +674,7 @@ function MetaPill({ label, value, color }) {
     }}>
       <span style={{ fontSize: 9, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</span>
       <span style={{ fontSize: 11, fontWeight: 700, fontFamily: 'JetBrains Mono', color }}>{value}</span>
+      {METRIC_HELP[label] && <InfoTip text={METRIC_HELP[label]} />}
     </div>
   )
 }

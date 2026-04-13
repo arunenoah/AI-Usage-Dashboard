@@ -1,20 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Chart, BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
+import { Chart, BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler } from 'chart.js'
 
-Chart.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend)
+Chart.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler)
 
 function fmtTok(n) {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
   if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`
   return `${n}`
-}
-
-function fmtCost(n) {
-  if (n >= 1000) return `$${(n / 1000).toFixed(1)}K`
-  if (n >= 100) return `$${n.toFixed(0)}`
-  if (n >= 10) return `$${n.toFixed(1)}`
-  return `$${n.toFixed(2)}`
 }
 
 const DATE_RANGES = [
@@ -25,39 +18,33 @@ const DATE_RANGES = [
 ]
 
 const VIEWS = [
-  { id: 'cost',   label: 'Cost' },
   { id: 'tokens', label: 'Tokens' },
   { id: 'cache',  label: 'Cache' },
 ]
 
-// Weekly summary: last 7 days of data
-function weeklySummary(daily) {
-  const last7 = daily.slice(-7)
-  const totalCost = last7.reduce((s, d) => s + (d.est_cost_usd || 0), 0)
-  const totalInput = last7.reduce((s, d) => s + (d.input_tokens || 0), 0)
-  const totalOutput = last7.reduce((s, d) => s + (d.output_tokens || 0), 0)
-  const days = last7.filter(d => (d.input_tokens || 0) + (d.output_tokens || 0) > 0).length || 1
-  const avgDaily = totalCost / days
-  const projected = avgDaily * 30
-  return { totalCost, totalInput, totalOutput, avgDaily, projected, days: last7.length }
-}
-
-function SummaryPill({ label, value, sub, color = '#344767' }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: '#9baabf' }}>{sub}</div>}
-    </div>
-  )
-}
-
-export default function TokenChart({ daily = [], totalTokens = 0, onRangeChange, currentDays = 30 }) {
+export default function TokenChart({ daily = [], onRangeChange, currentDays = 30 }) {
   const ref = useRef(null)
   const chartRef = useRef(null)
-  const [view, setView] = useState('cost')
+  const [view, setView] = useState('tokens')
 
-  const summary = weeklySummary(daily)
+  const periodInput = daily.reduce((s, d) => s + (d.input_tokens || 0), 0)
+  const periodOutput = daily.reduce((s, d) => s + (d.output_tokens || 0), 0)
+  const periodTotal = periodInput + periodOutput
+  const periodCache = daily.reduce((s, d) => s + (d.cache_read || 0), 0)
+  const activeDays = daily.filter(d => (d.input_tokens || 0) + (d.output_tokens || 0) > 0).length
+  const avgPerDay = activeDays > 0 ? Math.round(periodTotal / activeDays) : 0
+
+  // Trend: compare last 7 days vs previous 7 days
+  const last7Total = daily.slice(-7).reduce((s, d) => s + (d.input_tokens || 0) + (d.output_tokens || 0), 0)
+  const prev7Total = daily.slice(-14, -7).reduce((s, d) => s + (d.input_tokens || 0) + (d.output_tokens || 0), 0)
+  const trendPct = prev7Total > 0 ? ((last7Total - prev7Total) / prev7Total * 100) : 0
+
+  // Output ratio
+  const outputRatio = periodInput > 0 ? (periodOutput / periodInput).toFixed(1) : '—'
+
+  // Cache hit rate
+  const cacheTotal = periodCache + periodInput
+  const cacheHitPct = cacheTotal > 0 ? Math.round(periodCache / cacheTotal * 100) : 0
 
   useEffect(() => {
     if (!ref.current || daily.length === 0) return
@@ -70,132 +57,100 @@ export default function TokenChart({ daily = [], totalTokens = 0, onRangeChange,
 
     let datasets = []
     let yAxis = {}
-    let xAxis = {}
 
-    if (view === 'cost') {
-      // Cost bars per day
+    if (view === 'tokens') {
       datasets = [
         {
-          label: 'Daily Cost (USD)',
-          data: daily.map(d => +(d.est_cost_usd || 0).toFixed(3)),
-          backgroundColor: daily.map((d, i) => {
-            const cost = d.est_cost_usd || 0
-            if (cost > 80) return '#ef4444'
-            if (cost > 40) return '#f97316'
-            return '#1A73E8'
-          }),
-          borderRadius: { topLeft: 4, topRight: 4 },
-          borderSkipped: false,
-        },
-      ]
-      yAxis = {
-        grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-        border: { display: false },
-        ticks: {
-          font: { family: 'Figtree', size: 11 },
-          color: '#9baabf',
-          callback: v => `$${v.toFixed(0)}`,
-        },
-      }
-    } else if (view === 'tokens') {
-      // Input + Output stacked
-      datasets = [
-        {
-          label: 'Output tokens',
+          label: 'Output',
           data: daily.map(d => d.output_tokens || 0),
-          backgroundColor: '#34d399',
-          borderRadius: { topLeft: 4, topRight: 4 },
-          stack: 'io',
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34, 197, 94, 0.08)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: daily.length > 30 ? 0 : 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#22c55e',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          borderWidth: 2,
         },
         {
-          label: 'Input tokens',
+          label: 'Input',
           data: daily.map(d => d.input_tokens || 0),
-          backgroundColor: '#818cf8',
-          stack: 'io',
+          borderColor: '#818cf8',
+          backgroundColor: 'rgba(129, 140, 248, 0.08)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: daily.length > 30 ? 0 : 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#818cf8',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          borderWidth: 2,
         },
       ]
-      yAxis = {
-        stacked: true,
-        grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-        border: { display: false },
-        ticks: {
-          font: { family: 'Figtree', size: 11 },
-          color: '#9baabf',
-          callback: v => fmtTok(v),
-        },
-      }
-      xAxis = { stacked: true }
     } else {
-      // Cache view
       datasets = [
         {
           label: 'Cache Read',
           data: daily.map(d => d.cache_read || 0),
-          backgroundColor: '#93c5fd',
-          borderRadius: { topLeft: 4, topRight: 4 },
-          stack: 'cache',
+          borderColor: '#60a5fa',
+          backgroundColor: 'rgba(96, 165, 250, 0.1)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: daily.length > 30 ? 0 : 2,
+          pointHoverRadius: 5,
+          borderWidth: 2,
         },
         {
           label: 'Cache Write',
           data: daily.map(d => d.cache_creation || 0),
-          backgroundColor: '#fcd34d',
-          stack: 'cache',
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.08)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: daily.length > 30 ? 0 : 2,
+          pointHoverRadius: 5,
+          borderWidth: 2,
         },
       ]
-      yAxis = {
-        stacked: true,
-        grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
-        border: { display: false },
-        ticks: {
-          font: { family: 'Figtree', size: 11 },
-          color: '#9baabf',
-          callback: v => fmtTok(v),
-        },
-      }
-      xAxis = { stacked: true }
+    }
+
+    yAxis = {
+      grid: { color: 'rgba(0,0,0,0.03)', drawBorder: false },
+      border: { display: false },
+      ticks: { font: { family: 'Figtree', size: 10 }, color: '#9baabf', callback: v => fmtTok(v) },
     }
 
     chartRef.current = new Chart(ref.current, {
-      type: 'bar',
+      type: 'line',
       data: { labels, datasets },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: {
-            display: view !== 'cost',
-            position: 'top',
+            display: true, position: 'top', align: 'end',
             labels: {
-              usePointStyle: true,
-              pointStyle: 'rect',
-              boxWidth: 10,
-              boxHeight: 10,
-              font: { family: 'Figtree', size: 12 },
-              color: '#7b809a',
-              padding: 16,
+              usePointStyle: true, pointStyle: 'circle', boxWidth: 6, boxHeight: 6,
+              font: { family: 'Figtree', size: 11 }, color: '#7b809a', padding: 12,
             },
           },
           tooltip: {
+            backgroundColor: '#344767',
+            titleFont: { family: 'Figtree', size: 11 },
+            bodyFont: { family: 'JetBrains Mono', size: 11 },
+            cornerRadius: 8, padding: 10,
             callbacks: {
-              label: ctx => {
-                if (view === 'cost') return ` $${ctx.parsed.y.toFixed(2)}`
-                return ` ${ctx.dataset.label}: ${fmtTok(ctx.parsed.y)}`
-              },
-              title: titles => titles[0]?.label || '',
+              label: ctx => ` ${ctx.dataset.label}: ${fmtTok(ctx.parsed.y)}`,
             },
           },
         },
         scales: {
           x: {
-            ...xAxis,
-            grid: { display: false },
-            border: { display: false },
-            ticks: {
-              font: { family: 'Figtree', size: 11 },
-              color: '#9baabf',
-              maxRotation: 0,
-              maxTicksLimit: 10,
-            },
+            grid: { display: false }, border: { display: false },
+            ticks: { font: { family: 'Figtree', size: 10 }, color: '#9baabf', maxRotation: 0, maxTicksLimit: 8 },
           },
           y: yAxis,
         },
@@ -204,128 +159,127 @@ export default function TokenChart({ daily = [], totalTokens = 0, onRangeChange,
     return () => chartRef.current?.destroy()
   }, [daily, view])
 
-  const currentRange = DATE_RANGES.find(r => r.days === currentDays) || DATE_RANGES[3]
-
-  // Period totals for the header
-  const periodCost = daily.reduce((s, d) => s + (d.est_cost_usd || 0), 0)
-  const periodInput = daily.reduce((s, d) => s + (d.input_tokens || 0), 0)
-  const periodOutput = daily.reduce((s, d) => s + (d.output_tokens || 0), 0)
-
   return (
-    <div style={{ background: '#fff', borderRadius: 16, padding: '24px 24px 16px', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+    <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
 
-      {/* ── Header row ── */}
+      {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <div>
-          <div style={{ fontSize: 13, color: '#7b809a', fontWeight: 500 }}>Token Usage</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#344767', fontFamily: 'Figtree', marginTop: 2, lineHeight: 1 }}>
-            {fmtCost(periodCost)}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 12, color: '#7b809a', fontWeight: 500, marginBottom: 4 }}>Token Usage</div>
+            <div style={{ fontSize: 32, fontWeight: 800, color: '#344767', lineHeight: 1 }}>{fmtTok(periodTotal)}</div>
+            <div style={{ fontSize: 10, color: '#9baabf', marginTop: 4 }}>
+              {fmtTok(periodOutput)} output · {fmtTok(periodInput)} input
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: '#9baabf', marginTop: 4 }}>
-            {fmtTok(periodInput)} input · {fmtTok(periodOutput)} output
-          </div>
+          {trendPct !== 0 && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '3px 10px', borderRadius: 20,
+              background: trendPct > 0 ? '#EBF3FF' : '#FEF2F2',
+              color: trendPct > 0 ? '#1A73E8' : '#ef4444',
+              fontSize: 11, fontWeight: 700,
+            }}>
+              {trendPct > 0 ? '↑' : '↓'} {Math.abs(trendPct).toFixed(0)}%
+              <span style={{ fontWeight: 500, color: '#9baabf', marginLeft: 2 }}>vs prev week</span>
+            </div>
+          )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-          {/* Date range */}
-          <div style={{ display: 'flex', gap: 4, background: '#f0f2f5', borderRadius: 20, padding: '3px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 3, background: '#f0f2f5', borderRadius: 20, padding: '3px' }}>
             {DATE_RANGES.map(r => (
               <button key={r.label} onClick={() => onRangeChange?.(r.days)} style={{
                 padding: '4px 10px', borderRadius: 16, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
                 background: currentDays === r.days ? '#1A73E8' : 'transparent',
                 color: currentDays === r.days ? '#fff' : '#7b809a',
-                transition: 'all 0.15s',
               }}>{r.label}</button>
             ))}
           </div>
-          {/* View toggle */}
-          <div style={{ display: 'flex', gap: 4, background: '#f0f2f5', borderRadius: 20, padding: '3px' }}>
+          <div style={{ display: 'flex', gap: 3, background: '#f0f2f5', borderRadius: 20, padding: '3px' }}>
             {VIEWS.map(v => (
               <button key={v.id} onClick={() => setView(v.id)} style={{
                 padding: '4px 10px', borderRadius: 16, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
                 background: view === v.id ? '#344767' : 'transparent',
                 color: view === v.id ? '#fff' : '#7b809a',
-                transition: 'all 0.15s',
               }}>{v.label}</button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Weekly summary pills ── */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 16, background: '#f8fafc', borderRadius: 12, padding: '14px 20px',
-        marginBottom: 20,
-      }}>
-        <SummaryPill
-          label="7-day spend"
-          value={fmtCost(summary.totalCost)}
-          sub={`${summary.days} active days`}
-          color="#1A73E8"
-        />
-        <SummaryPill
-          label="Avg / day"
-          value={fmtCost(summary.avgDaily)}
-          sub="active days only"
-          color="#344767"
-        />
-        <SummaryPill
-          label="Projected / mo"
-          value={fmtCost(summary.projected)}
-          sub="based on daily avg"
-          color={summary.projected > 500 ? '#ef4444' : summary.projected > 200 ? '#f97316' : '#344767'}
-        />
-        <SummaryPill
-          label="Output generated"
-          value={fmtTok(summary.totalOutput)}
-          sub={`${fmtTok(summary.totalInput)} input`}
-          color="#344767"
-        />
+      {/* ── Metric cards ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+        {[
+          { label: 'Output Tokens', value: fmtTok(periodOutput), sub: 'code Claude generated', color: '#22c55e', icon: '▸' },
+          { label: 'Output Ratio', value: `${outputRatio}×`, sub: 'output ÷ input', color: '#8b5cf6', icon: '◎' },
+          { label: 'Avg / Day', value: fmtTok(avgPerDay), sub: `${activeDays} active days`, color: '#1A73E8', icon: '◇' },
+          { label: 'Cache Hit Rate', value: `${cacheHitPct}%`, sub: `${fmtTok(periodCache)} cached`, color: '#60a5fa', icon: '△' },
+        ].map(m => (
+          <div key={m.label} style={{
+            background: '#f8fafc', borderRadius: 10, padding: '12px 14px',
+            borderLeft: `3px solid ${m.color}`,
+          }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>
+              {m.icon} {m.label}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: m.color, fontFamily: 'Figtree', lineHeight: 1.1 }}>{m.value}</div>
+            {m.sub && <div style={{ fontSize: 10, color: '#9baabf', marginTop: 3 }}>{m.sub}</div>}
+          </div>
+        ))}
       </div>
 
-      <div style={{ height: 1, background: '#f0f2f5', margin: '0 -24px 16px' }} />
-
       {/* ── Chart ── */}
-      <div style={{ height: 240 }}>
+      <div style={{ height: 220 }}>
         <canvas ref={ref} />
       </div>
 
-      {/* ── Daily breakdown table (last 7 days) ── */}
-      <div style={{ marginTop: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }}>
-          Recent Days
+      {/* ── Last 7 days — input/output breakdown ── */}
+      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f2f5' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>
+          Last 7 Days
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {daily.slice(-7).reverse().map((d, i) => {
-            const totalTok = (d.input_tokens || 0) + (d.output_tokens || 0)
-            const cost = d.est_cost_usd || 0
-            const maxCost = Math.max(...daily.map(x => x.est_cost_usd || 0), 1)
-            const barW = Math.round((cost / maxCost) * 100)
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+          {daily.slice(-7).map((d) => {
+            const input = d.input_tokens || 0
+            const output = d.output_tokens || 0
+            const total = input + output
+            const maxTotal = Math.max(...daily.slice(-7).map(x => (x.input_tokens || 0) + (x.output_tokens || 0)), 1)
+            const intensity = total / maxTotal
             const dt = new Date(d.date)
-            const label = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+            const dayLabel = dt.toLocaleDateString('en-US', { weekday: 'short' })
+            const dateLabel = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            const bgColor = total === 0 ? '#f8f9fa'
+              : intensity > 0.8 ? '#1A73E8'
+              : intensity > 0.5 ? '#60a5fa'
+              : intensity > 0.2 ? '#93c5fd'
+              : '#dbeafe'
+            const textColor = intensity > 0.5 ? '#fff' : '#344767'
             return (
-              <div key={d.date} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 90, fontSize: 11, color: '#7b809a', flexShrink: 0 }}>{label}</div>
-                <div style={{ flex: 1, height: 6, background: '#f0f2f5', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{
-                    width: `${barW}%`, height: '100%', borderRadius: 3,
-                    background: cost > 80 ? '#ef4444' : cost > 40 ? '#f97316' : '#1A73E8',
-                    transition: 'width 0.4s',
-                  }} />
-                </div>
-                <div style={{ width: 44, fontSize: 12, fontWeight: 700, color: '#344767', textAlign: 'right', flexShrink: 0 }}>
-                  {fmtCost(cost)}
-                </div>
-                <div style={{ width: 72, fontSize: 11, color: '#9baabf', textAlign: 'right', flexShrink: 0 }}>
-                  {fmtTok(totalTok)} tok
-                </div>
+              <div key={d.date} style={{
+                background: bgColor, borderRadius: 8, padding: '8px 6px', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: total === 0 ? '#9baabf' : textColor, opacity: 0.8 }}>{dayLabel}</div>
+                <div style={{ fontSize: 8, color: total === 0 ? '#c4cdd6' : textColor, opacity: 0.7, marginBottom: 4 }}>{dateLabel}</div>
+                {total > 0 ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, marginBottom: 2 }}>
+                      <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, fontWeight: 700, color: textColor, fontFamily: 'JetBrains Mono' }}>{fmtTok(output)}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                      <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#818cf8', flexShrink: 0 }} />
+                      <span style={{ fontSize: 9, color: textColor, opacity: 0.8, fontFamily: 'JetBrains Mono' }}>{fmtTok(input)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: 10, color: '#c4cdd6', marginTop: 4 }}>—</div>
+                )}
               </div>
             )
           })}
         </div>
       </div>
-
     </div>
   )
 }

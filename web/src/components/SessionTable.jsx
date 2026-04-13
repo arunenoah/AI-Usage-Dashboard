@@ -72,7 +72,7 @@ export default function SessionTable({ sessions = [], total = 0, onSessionClick,
   const [tab, setTab] = useState('All')
   const [selectedProject, setSelectedProject] = useState('all')
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 10
+  const PAGE_SIZE = 15
 
   const tabs = ['All', 'Claude', 'Cursor', 'Copilot']
 

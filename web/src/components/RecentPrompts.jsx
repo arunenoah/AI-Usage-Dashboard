@@ -258,6 +258,49 @@ function ConversationPanel({ pair, onClose }) {
           </div>
         )}
 
+        {/* Prompt Quality Score */}
+        {pair.prompt_score > 0 && (
+          <div style={{ padding: '12px 24px', borderBottom: '1px solid #f0f2f5' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Score circle */}
+              {(() => {
+                const s = pair.prompt_score
+                const color = s >= 9 ? '#22c55e' : s >= 7 ? '#1A73E8' : s >= 5 ? '#f59e0b' : '#ef4444'
+                const label = s >= 9 ? 'Good' : s >= 7 ? 'Decent' : s >= 5 ? 'Needs Work' : 'Weak'
+                const r = 20
+                const circ = 2 * Math.PI * r
+                const dash = (s / 10) * circ
+                return (
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <svg width={52} height={52} viewBox="0 0 52 52">
+                      <circle cx={26} cy={26} r={r} fill="none" stroke="#f0f2f5" strokeWidth={4} />
+                      <circle cx={26} cy={26} r={r} fill="none" stroke={color} strokeWidth={4}
+                        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round" transform="rotate(-90 26 26)" />
+                      <text x={26} y={24} textAnchor="middle" style={{ fontFamily: 'JetBrains Mono', fontSize: 13, fontWeight: 800, fill: color }}>{s}</text>
+                      <text x={26} y={35} textAnchor="middle" style={{ fontFamily: 'Figtree', fontSize: 7, fontWeight: 600, fill: '#9baabf' }}>{label}</text>
+                    </svg>
+                  </div>
+                )
+              })()}
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#344767', marginBottom: 4 }}>Prompt Quality</div>
+                {(pair.prompt_tips || []).length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {pair.prompt_tips.map((tip, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                        <span style={{ color: '#f59e0b', fontSize: 10, marginTop: 1, flexShrink: 0 }}>→</span>
+                        <span style={{ fontSize: 11, color: '#7b809a', lineHeight: 1.4 }}>{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 11, color: '#22c55e' }}>This prompt follows best practices.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
           {/* User input */}
@@ -352,6 +395,14 @@ function ConversationPanel({ pair, onClose }) {
 // ────────── Main RecentPrompts Component ──────────
 const PAGE_SIZE = 20
 
+const SCORE_FILTERS = [
+  { label: 'All', min: 0, max: 10 },
+  { label: 'Weak (1-4)', min: 1, max: 4, color: '#ef4444' },
+  { label: 'Needs Work (5-6)', min: 5, max: 6, color: '#f59e0b' },
+  { label: 'Decent (7-8)', min: 7, max: 8, color: '#1A73E8' },
+  { label: 'Good (9-10)', min: 9, max: 10, color: '#22c55e' },
+]
+
 export default function RecentPrompts({ onSessionClick }) {
   const [pairs, setPairs] = useState([])
   const [total, setTotal] = useState(0)
@@ -360,10 +411,15 @@ export default function RecentPrompts({ onSessionClick }) {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [page, setPage] = useState(1)
+  const [scoreFilter, setScoreFilter] = useState(SCORE_FILTERS[0])
 
   const fetchConversations = useCallback(() => {
     setLoading(true)
-    fetch(`/api/conversations?period=${period}&limit=${PAGE_SIZE}&page=${page}`)
+    let url = `/api/conversations?period=${period}&limit=${PAGE_SIZE}&page=${page}`
+    if (scoreFilter.min > 0 || scoreFilter.max < 10) {
+      url += `&score_min=${scoreFilter.min}&score_max=${scoreFilter.max}`
+    }
+    fetch(url)
       .then(r => r.json())
       .then(d => {
         setPairs(d.pairs || [])
@@ -372,7 +428,7 @@ export default function RecentPrompts({ onSessionClick }) {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [period, page])
+  }, [period, page, scoreFilter])
 
   useEffect(() => {
     setSelected(null)
@@ -389,7 +445,7 @@ export default function RecentPrompts({ onSessionClick }) {
     <>
       <div style={{ background: '#fff', borderRadius: 16, padding: '24px', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#344767' }}>Conversations</div>
             <div style={{ fontSize: 12, color: '#7b809a', marginTop: 2 }}>
@@ -409,6 +465,26 @@ export default function RecentPrompts({ onSessionClick }) {
           </div>
         </div>
 
+        {/* Score filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 0.5 }}>Score:</span>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {SCORE_FILTERS.map(sf => {
+              const isActive = scoreFilter.label === sf.label
+              const btnColor = sf.color || '#344767'
+              return (
+                <button key={sf.label} onClick={() => { setScoreFilter(sf); setPage(1) }} style={{
+                  padding: '3px 10px', borderRadius: 14, border: `1px solid ${isActive ? btnColor : '#e8eaf0'}`,
+                  cursor: 'pointer', fontSize: 10, fontWeight: 700,
+                  background: isActive ? btnColor + '15' : '#fff',
+                  color: isActive ? btnColor : '#7b809a',
+                  transition: 'all 0.15s',
+                }}>{sf.label}</button>
+              )
+            })}
+          </div>
+        </div>
+
         <div style={{ height: 1, background: '#f0f2f5', margin: '0 -24px 16px' }} />
 
         {loading && (
@@ -425,8 +501,8 @@ export default function RecentPrompts({ onSessionClick }) {
 
         {/* Table header */}
         {!loading && paged.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 60px', gap: 12, padding: '4px 12px', marginBottom: 4 }}>
-            {['Prompt / Response', 'Output', 'Context', 'Cost', 'Time'].map(h => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 50px 80px 80px 80px 60px', gap: 12, padding: '4px 12px', marginBottom: 4 }}>
+            {['Prompt / Response', 'Score', 'Output', 'Context', 'Cost', 'Time'].map(h => (
               <div key={h} style={{ fontSize: 9, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 0.8 }}>{h}</div>
             ))}
           </div>
@@ -447,7 +523,7 @@ export default function RecentPrompts({ onSessionClick }) {
                 key={i}
                 onClick={() => setSelected(pair)}
                 style={{
-                  display: 'grid', gridTemplateColumns: '1fr 80px 80px 80px 60px',
+                  display: 'grid', gridTemplateColumns: '1fr 50px 80px 80px 80px 60px',
                   gap: 12, padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
                   border: '1px solid transparent', transition: 'all 0.12s',
                 }}
@@ -494,6 +570,21 @@ export default function RecentPrompts({ onSessionClick }) {
                     </span>
                     {pair.git_branch && <span style={{ fontSize: 9, color: '#9baabf' }}>⎇ {pair.git_branch}</span>}
                   </div>
+                </div>
+
+                {/* Prompt Score */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {pair.prompt_score > 0 ? (() => {
+                    const s = pair.prompt_score
+                    const color = s >= 9 ? '#22c55e' : s >= 7 ? '#1A73E8' : s >= 5 ? '#f59e0b' : '#ef4444'
+                    return (
+                      <span style={{
+                        fontSize: 11, fontWeight: 800, fontFamily: 'JetBrains Mono',
+                        color, background: color + '15', borderRadius: 6,
+                        padding: '2px 8px', minWidth: 28, textAlign: 'center',
+                      }}>{s}</span>
+                    )
+                  })() : <span style={{ color: '#c4cdd6', fontSize: 11 }}>—</span>}
                 </div>
 
                 {/* Output tokens */}

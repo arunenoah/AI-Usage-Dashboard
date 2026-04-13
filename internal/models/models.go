@@ -24,14 +24,22 @@ type Insight struct {
 
 // TierGoal is one dimension's gap between now and the next tier
 type TierGoal struct {
-	Dimension    string `json:"dimension"`
-	CurrentValue string `json:"current_value"`
-	TargetValue  string `json:"target_value"`
-	Delta        string `json:"delta"`
-	CurrentTier  string `json:"current_tier"`
-	NextTier     string `json:"next_tier"`
-	Met          bool   `json:"met"`       // already at or above next-tier threshold
-	IsWeakest    bool   `json:"is_weakest"` // this is the dimension holding back overall tier
+	Dimension    string          `json:"dimension"`
+	CurrentValue string          `json:"current_value"`
+	TargetValue  string          `json:"target_value"`
+	Delta        string          `json:"delta"`
+	CurrentTier  string          `json:"current_tier"`
+	NextTier     string          `json:"next_tier"`
+	Met          bool            `json:"met"`       // already at or above next-tier threshold
+	IsWeakest    bool            `json:"is_weakest"` // this is the dimension holding back overall tier
+	Examples     []PromptExample `json:"examples,omitempty"` // real prompts from user's conversations
+}
+
+// PromptExample shows a real bad prompt from the user's data and a rewritten better version
+type PromptExample struct {
+	Bad  string `json:"bad"`  // actual prompt from the user's conversations
+	Good string `json:"good"` // rewritten version showing how to improve
+	Why  string `json:"why"`  // short explanation
 }
 
 // InsightsResponse is the full response for /api/insights
@@ -147,19 +155,21 @@ type ToolDetail struct {
 
 // ConversationPair is a matched user→assistant turn pair
 type ConversationPair struct {
-	SessionID   string       `json:"session_id"`
-	ProjectDir  string       `json:"project_dir"`
-	GitBranch   string       `json:"git_branch"`
-	Model       string       `json:"model"`
-	UserText    string       `json:"user_text"`
-	AssistText  string       `json:"assist_text"`
-	ToolCalls   []string     `json:"tool_calls,omitempty"`
-	ToolDetails []ToolDetail `json:"tool_details,omitempty"`
-	Usage       *Usage       `json:"usage,omitempty"`
-	DurationMs  int64        `json:"duration_ms,omitempty"`
-	Timestamp   time.Time    `json:"timestamp"`
-	ContextPct  float64      `json:"context_pct"` // (input+cache_read)/200k*100
-	Cost        float64      `json:"cost"`
+	SessionID    string       `json:"session_id"`
+	ProjectDir   string       `json:"project_dir"`
+	GitBranch    string       `json:"git_branch"`
+	Model        string       `json:"model"`
+	UserText     string       `json:"user_text"`
+	AssistText   string       `json:"assist_text"`
+	ToolCalls    []string     `json:"tool_calls,omitempty"`
+	ToolDetails  []ToolDetail `json:"tool_details,omitempty"`
+	Usage        *Usage       `json:"usage,omitempty"`
+	DurationMs   int64        `json:"duration_ms,omitempty"`
+	Timestamp    time.Time    `json:"timestamp"`
+	ContextPct   float64      `json:"context_pct"` // (input+cache_read)/200k*100
+	Cost         float64      `json:"cost"`
+	PromptScore  int          `json:"prompt_score"`           // 1-10 quality rating
+	PromptTips   []string     `json:"prompt_tips,omitempty"`  // improvement suggestions
 }
 
 // ModelStats holds token usage for one model

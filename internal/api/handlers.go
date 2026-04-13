@@ -452,6 +452,11 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
+	scoreMin, _ := strconv.Atoi(r.URL.Query().Get("score_min"))
+	scoreMax, _ := strconv.Atoi(r.URL.Query().Get("score_max"))
+	if scoreMax < 1 {
+		scoreMax = 10
+	}
 
 	var cutoff time.Time
 	now := time.Now()
@@ -578,6 +583,8 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 					float64(sumCacheWrite)/1e6*priceCacheW
 				pair.Cost = math.Round(pair.Cost*10000) / 10000
 			}
+			// Score the prompt quality 1-10
+			pair.PromptScore, pair.PromptTips = scorePrompt(pair)
 			pairs = append(pairs, pair)
 		}
 	}
@@ -586,6 +593,17 @@ func (h *Handler) getConversations(w http.ResponseWriter, r *http.Request) {
 	sort.Slice(pairs, func(i, j int) bool {
 		return pairs[i].Timestamp.After(pairs[j].Timestamp)
 	})
+
+	// Filter by score range
+	if scoreMin > 0 || scoreMax < 10 {
+		var filtered []models.ConversationPair
+		for _, p := range pairs {
+			if p.PromptScore >= scoreMin && p.PromptScore <= scoreMax {
+				filtered = append(filtered, p)
+			}
+		}
+		pairs = filtered
+	}
 
 	total := len(pairs)
 
@@ -864,6 +882,146 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		IsWeakest:    weakestDim == "tool_diversity",
 	})
 
+	// ── Real Prompt Examples for unmet goals ─────────────────────────────────
+	for i := range nextTierGoals {
+		if nextTierGoals[i].Met {
+			continue
+		}
+		var examples []models.PromptExample
+		switch nextTierGoals[i].Dimension {
+		case "Output ratio":
+			for _, s := range sessions {
+				if len(examples) >= 3 {
+					break
+				}
+				p := strings.TrimSpace(s.FirstPrompt)
+				if p == "" || len(p) > 150 || len(p) < 8 || strings.Contains(p, "[Image") || strings.Contains(p, "source:") || strings.Contains(p, "<local-command") || strings.Contains(p, "Caveat:") {
+					continue
+				}
+				ratio := 0.0
+				if s.TotalUsage.InputTokens > 0 {
+					ratio = float64(s.TotalUsage.OutputTokens) / float64(s.TotalUsage.InputTokens)
+				}
+				if ratio < 1.0 && ratio > 0 {
+					truncP := p
+					if len(truncP) > 100 {
+						truncP = truncP[:100] + "…"
+					}
+					examples = append(examples, models.PromptExample{
+						Bad:  truncP,
+						Good: fmt.Sprintf("Output ratio was %.1f× — Claude wrote less than you typed. Ask for complete implementations: \"implement this fully with error handling and tests\" instead of step-by-step guidance.", ratio),
+						Why:  fmt.Sprintf("This session produced only %.1f× output per input token. Asking for full implementations in one go pushes the ratio above 2×.", ratio),
+					})
+				}
+			}
+		case "Prompt specificity":
+			for _, s := range sessions {
+				if len(examples) >= 3 {
+					break
+				}
+				p := strings.TrimSpace(s.FirstPrompt)
+				if p == "" || len(p) > 150 || len(p) < 8 || strings.Contains(p, "[Image") || strings.Contains(p, "source:") || strings.Contains(p, "<local-command") || strings.Contains(p, "Caveat:") {
+					continue
+				}
+				if !isSpecificPrompt(p) {
+					truncP := p
+					if len(truncP) > 100 {
+						truncP = truncP[:100] + "…"
+					}
+					// Find the most-used file in this session's tool samples
+					hint := ""
+					if samples, ok := s.ToolSamples["Read"]; ok && len(samples) > 0 {
+						hint = samples[0]
+					} else if samples, ok := s.ToolSamples["Edit"]; ok && len(samples) > 0 {
+						hint = samples[0]
+					}
+					good := "Add the file path and function name to your prompt. "
+					if hint != "" {
+						good += fmt.Sprintf("Claude ended up reading \"%s\" — mention it upfront to skip the search.", hint)
+					} else {
+						good += "e.g. \"In src/components/Auth.tsx:42, fix the validation\" — Claude jumps straight there."
+					}
+					examples = append(examples, models.PromptExample{
+						Bad:  truncP,
+						Good: good,
+						Why:  "Claude had to search for the right file first. Naming it upfront saves tokens and time.",
+					})
+				}
+			}
+		case "Agent delegation":
+			for _, s := range sessions {
+				if len(examples) >= 3 {
+					break
+				}
+				if s.ToolCounts["Agent"] > 0 || s.UserTurns < 15 {
+					continue
+				}
+				p := strings.TrimSpace(s.FirstPrompt)
+				if p == "" || strings.Contains(p, "[Image") || strings.Contains(p, "source:") || strings.Contains(p, "<local-command") || strings.Contains(p, "Caveat:") {
+					continue
+				}
+				truncP := p
+				if len(truncP) > 100 {
+					truncP = truncP[:100] + "…"
+				}
+				project := s.ProjectDir
+				if idx := strings.LastIndex(project, "/"); idx >= 0 {
+					project = project[idx+1:]
+				}
+				examples = append(examples, models.PromptExample{
+					Bad:  fmt.Sprintf("\"%s\" — %d turns in %s, all done sequentially", truncP, s.UserTurns, project),
+					Good: fmt.Sprintf("With %d turns, parts of this could run in parallel. Say: \"Use agents to handle X and Y concurrently\" or use the /parallel command for independent subtasks.", s.UserTurns),
+					Why:  fmt.Sprintf("Long sequential sessions (%d turns) often contain independent subtasks. Agents can handle 2-3 tasks simultaneously.", s.UserTurns),
+				})
+			}
+		case "Tool breadth":
+			for _, s := range sessions {
+				if len(examples) >= 3 {
+					break
+				}
+				if len(s.ToolCounts) > 2 {
+					continue
+				}
+				p := strings.TrimSpace(s.FirstPrompt)
+				if p == "" || len(p) < 8 || strings.Contains(p, "[Image") || strings.Contains(p, "source:") || strings.Contains(p, "<local-command") || strings.Contains(p, "Caveat:") {
+					continue
+				}
+				truncP := p
+				if len(truncP) > 100 {
+					truncP = truncP[:100] + "…"
+				}
+				usedTools := []string{}
+				for t := range s.ToolCounts {
+					usedTools = append(usedTools, t)
+				}
+				sort.Strings(usedTools)
+				missing := []string{}
+				allTools := []string{"Read", "Edit", "Grep", "Glob", "Bash", "Agent", "Write"}
+				for _, t := range allTools {
+					found := false
+					for _, u := range usedTools {
+						if t == u {
+							found = true
+							break
+						}
+					}
+					if !found {
+						missing = append(missing, t)
+					}
+				}
+				if len(missing) > 4 {
+					missing = missing[:4]
+				}
+				examples = append(examples, models.PromptExample{
+					Bad:  fmt.Sprintf("\"%s\" — only used %s", truncP, strings.Join(usedTools, ", ")),
+					Good: fmt.Sprintf("This session could also have used: %s. Ask Claude to search with Grep, inspect with Read, or delegate with Agent for richer results.", strings.Join(missing, ", ")),
+					Why:  fmt.Sprintf("Using only %d tool(s) limits what Claude can do. Each tool is optimized for its job — Grep is faster than Bash grep, Edit is safer than sed.", len(usedTools)),
+				})
+			}
+		}
+		nextTierGoals[i].Examples = examples
+	}
+
 	// ── Avg prompt length (for legacy raw metric) ────────────────────────────
 	var totalLen int
 	for _, s := range sessions {
@@ -987,6 +1145,158 @@ func isSpecificPrompt(text string) bool {
 		}
 	}
 	return false
+}
+
+// scorePrompt rates a prompt using the CARE framework:
+// C = Context (role/persona, project context, background)
+// A = Ask (clear task/instruction with action verb)
+// R = Rules (constraints, boundaries, what NOT to do)
+// E = Examples (desired output format, examples, reference patterns)
+// Scoring is strict: 1-3 = Weak, 4-5 = Needs Work, 6-7 = Decent, 8-9 = Good, 10 = Expert
+// Only truly structured prompts score 8+.
+func scorePrompt(pair models.ConversationPair) (int, []string) {
+	text := strings.TrimSpace(pair.UserText)
+	var tips []string
+
+	// Empty or image-only prompt
+	if text == "" {
+		return 1, []string{"Empty prompt — describe what you want done."}
+	}
+	if strings.Contains(text, "[Image") && len(strings.ReplaceAll(strings.ReplaceAll(text, " ", ""), "\n", "")) < 30 {
+		return 2, []string{
+			"[C] Add context: what project/file is this about?",
+			"[A] Describe the task: what should Claude do with this image?",
+		}
+	}
+
+	lower := strings.ToLower(text)
+	textLen := len(text)
+	score := 1 // start low — earn your score
+
+	// ── C: CONTEXT (0-2 points) ──────────────────────────────────────────────
+	// Does the prompt set context? File paths, project names, role/persona
+	hasContext := false
+
+	// File/path references
+	if isSpecificPrompt(text) {
+		score += 1
+		hasContext = true
+	} else {
+		tips = append(tips, "[C] Context: mention file paths, function names, or line numbers so Claude knows WHERE to work.")
+	}
+
+	// Role/persona or background context (longer prompts with setup)
+	hasRole := false
+	for _, kw := range []string{"as a ", "you are ", "act as ", "role:", "persona", "background:", "context:"} {
+		if strings.Contains(lower, kw) {
+			hasRole = true
+			break
+		}
+	}
+	if hasRole {
+		score += 1
+	} else if textLen > 50 {
+		// Partial credit for providing some context via length
+		if hasContext {
+			score += 1
+		}
+	}
+
+	// ── A: ASK / INSTRUCTION (0-3 points) ────────────────────────────────────
+	// Clear task with action verb
+	actionVerbs := []string{"fix", "add", "create", "update", "remove", "refactor", "implement", "write", "build", "change", "move", "rename", "test", "debug", "review", "check", "optimize", "migrate", "delete", "replace", "extract", "split", "merge", "convert"}
+	hasAction := false
+	for _, w := range actionVerbs {
+		if strings.Contains(lower, w+" ") || strings.Contains(lower, w+"\n") || strings.HasPrefix(lower, w) {
+			hasAction = true
+			break
+		}
+	}
+	if hasAction {
+		score += 1
+	} else {
+		tips = append(tips, "[A] Ask: start with a clear action verb — fix, implement, add, refactor, create, etc.")
+	}
+
+	// Detailed instruction (not just a one-liner)
+	if textLen >= 80 {
+		score += 1
+	} else if textLen < 30 {
+		tips = append(tips, "[A] Ask: too brief — describe WHAT you want done and the expected behavior.")
+	}
+
+	// Multi-step or structured ask
+	hasStructure := strings.Contains(text, "\n") || strings.Contains(text, "1.") || strings.Contains(text, "- ") || strings.Contains(text, "•")
+	if hasStructure && textLen >= 100 {
+		score += 1
+	}
+
+	// ── R: RULES / CONSTRAINTS (0-2 points) ──────────────────────────────────
+	// Does the prompt set boundaries?
+	hasConstraints := false
+	for _, kw := range []string{"don't", "do not", "avoid", "must", "should", "only", "without", "ensure", "make sure", "never", "always", "constraint", "requirement", "rule:", "important:"} {
+		if strings.Contains(lower, kw) {
+			hasConstraints = true
+			break
+		}
+	}
+	if hasConstraints {
+		score += 1
+	} else {
+		tips = append(tips, "[R] Rules: add constraints — what to avoid, boundaries, must-haves (e.g., \"don't change the API\", \"must be backward compatible\").")
+	}
+
+	// Expected behavior or acceptance criteria
+	hasExpected := false
+	for _, kw := range []string{"expect", "should return", "should output", "result should", "the output", "it should", "success criteria", "acceptance"} {
+		if strings.Contains(lower, kw) {
+			hasExpected = true
+			break
+		}
+	}
+	if hasExpected {
+		score += 1
+	}
+
+	// ── E: EXAMPLES / OUTPUT FORMAT (0-2 points) ─────────────────────────────
+	// Does the prompt specify desired output format or give examples?
+	hasFormat := false
+	for _, kw := range []string{"format:", "output:", "example:", "e.g.", "for example", "like this", "such as", "table", "list", "json", "csv", "markdown", "as a ", "return as", "respond with", "give me a"} {
+		if strings.Contains(lower, kw) {
+			hasFormat = true
+			break
+		}
+	}
+	if hasFormat {
+		score += 1
+	} else {
+		tips = append(tips, "[E] Examples: specify the desired output format (list, table, code block) or give an example of what you expect.")
+	}
+
+	// Code examples or before/after patterns
+	if strings.Contains(text, "```") || strings.Contains(text, "before:") || strings.Contains(text, "after:") || strings.Contains(text, "currently:") {
+		score += 1
+	}
+
+	// ── Clamp 1-10 ───────────────────────────────────────────────────────────
+	if score < 1 {
+		score = 1
+	}
+	if score > 10 {
+		score = 10
+	}
+
+	// Always show at least one tip unless score is 10
+	if score < 10 && len(tips) == 0 {
+		tips = append(tips, "Try the CARE format: [C]ontext → [A]sk → [R]ules → [E]xamples for maximum clarity.")
+	}
+
+	// Limit tips
+	if len(tips) > 4 {
+		tips = tips[:4]
+	}
+
+	return score, tips
 }
 
 // tierName converts a 0-3 integer to a tier label.

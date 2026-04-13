@@ -175,11 +175,11 @@ export default function Dashboard() {
 
   // Derived metrics
   const activeDays = (stats.daily || []).filter(d => (d.sessions || 0) > 0).length || 1
-  const avgCostPerDay = (stats.total_cost_usd || 0) / activeDays
-  const avgSessionTokens = stats.avg_session_tokens || 0
   const toolCounts = stats.tool_counts || {}
   const totalToolCalls = Object.values(toolCounts).reduce((s, n) => s + n, 0)
   const topTool = Object.entries(toolCounts).sort((a, b) => b[1] - a[1])[0]
+  const totalTokens = (stats.total_input_tokens || 0) + (stats.total_output_tokens || 0)
+  const projectCount = (stats.projects || []).length
 
   const currentDays = filter.from ? null : filter.days
 
@@ -208,18 +208,18 @@ export default function Dashboard() {
           delta={`${activeDays} active day${activeDays !== 1 ? 's' : ''} this period`}
         />
         <StatCard
-          label="Total Spend"
-          value={`$${(stats.total_cost_usd || 0).toFixed(2)}`}
-          icon="credit-card"
+          label="Tokens Used"
+          value={fmt(totalTokens)}
+          icon="cpu"
           colorClass="si-purple"
-          delta={`avg $${avgCostPerDay.toFixed(2)} / day`}
+          delta={`${fmt(stats.total_output_tokens || 0)} output · ${fmt(stats.total_input_tokens || 0)} input`}
         />
         <StatCard
-          label="Avg Session"
-          value={`$${(stats.avg_session_cost_usd || 0).toFixed(2)}`}
-          icon="cpu"
+          label="Projects"
+          value={projectCount}
+          icon="bar-chart"
           colorClass="si-orange"
-          delta={`${fmt(avgSessionTokens)} tokens avg`}
+          delta={`across ${stats.total_sessions} sessions`}
         />
         <StatCard
           label="Tool Calls"
@@ -237,7 +237,7 @@ export default function Dashboard() {
         onRangeChange={handleChartRangeChange}
       />
 
-      {/* Session explorer + Prompt insights + Tasks */}
+      {/* Session explorer + Prompt insights */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 20 }}>
         <SessionTable
           sessions={sessions}
@@ -245,10 +245,7 @@ export default function Dashboard() {
           onSessionClick={setSelectedSession}
           projects={stats.projects || []}
         />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <PromptScore days={filter.from ? 90 : (filter.days || 30)} />
-          <TasksPanel />
-        </div>
+        <PromptScore days={filter.from ? 90 : (filter.days || 30)} />
       </div>
 
       {/* Tool usage + Hourly activity */}
@@ -257,13 +254,14 @@ export default function Dashboard() {
         <ActivityChart sessions={sessions} />
       </div>
 
-      {/* Conversations */}
+      {/* Conversations — full width */}
       <RecentPrompts onSessionClick={setSelectedSession} />
 
-      {/* Context health + System info */}
-      <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 20 }}>
+      {/* Context health + System info + Tasks */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
         <ContextHealth sessions={sessions} />
         <SystemInfoCard />
+        <TasksPanel />
       </div>
 
       {/* Session detail drawer */}
