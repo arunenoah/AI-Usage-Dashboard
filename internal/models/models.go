@@ -21,6 +21,18 @@ type Insight struct {
 	Impact string `json:"impact,omitempty"`
 }
 
+// TierGoal is one dimension's gap between now and the next tier
+type TierGoal struct {
+	Dimension    string `json:"dimension"`
+	CurrentValue string `json:"current_value"`
+	TargetValue  string `json:"target_value"`
+	Delta        string `json:"delta"`
+	CurrentTier  string `json:"current_tier"`
+	NextTier     string `json:"next_tier"`
+	Met          bool   `json:"met"`       // already at or above next-tier threshold
+	IsWeakest    bool   `json:"is_weakest"` // this is the dimension holding back overall tier
+}
+
 // InsightsResponse is the full response for /api/insights
 type InsightsResponse struct {
 	Score           int                `json:"score"`
@@ -35,6 +47,7 @@ type InsightsResponse struct {
 	AvgPromptLen    float64            `json:"avg_prompt_len"`
 	OutputRatio     float64            `json:"output_ratio"`
 	OwnershipPct    float64            `json:"ownership_pct"`
+	NextTierGoals   []TierGoal         `json:"next_tier_goals,omitempty"`
 	AIAnalysis      *HaikuAnalysis     `json:"ai_analysis,omitempty"`
 	AILoading       bool               `json:"ai_loading,omitempty"`
 }

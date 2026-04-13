@@ -697,18 +697,21 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	}
 	outputRatioT := outputRatioTier(outputRatio)
 
-	// ── Prompt Ownership ─────────────────────────────────────────────────────
-	// fresh_input / (fresh_input + cache_read) — how much of input is new content
+	// ── Cache Efficiency ─────────────────────────────────────────────────────
+	// cacheRead / (cacheRead + freshInput) — higher is better (more from cache = less cost)
+	// NOTE: ownershipPct (fresh/total) was backwards — penalised good cache use.
+	// We now measure cache efficiency directly; 99%+ is Expert, not Beginner.
 	var totalFreshInput, totalCacheRead int64
 	for _, s := range sessions {
 		totalFreshInput += int64(s.TotalUsage.InputTokens)
 		totalCacheRead += int64(s.TotalUsage.CacheReadInputTokens)
 	}
-	ownershipPct := 0.0
+	ownershipPct := 0.0 // kept for JSON compat
 	if totalFreshInput+totalCacheRead > 0 {
 		ownershipPct = float64(totalFreshInput) / float64(totalFreshInput+totalCacheRead) * 100
 	}
-	ownershipT := ownershipTier(ownershipPct)
+	cacheEffPct := 100 - ownershipPct // how much comes from cache
+	cacheEffT := cacheEfficiencyTier(cacheEffPct)
 
 	// ── Specificity ───────────────────────────────────────────────────────────
 	specificCount := 0
@@ -733,49 +736,48 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 	hygieneT := hygieneTier(avgTurns)
 
 	// ── Overall Tier (weakest link) ────────────────────────────────────────────
+	tierScores := map[string]int{
+		"output_ratio":     outputRatioT,
+		"cache_efficiency": cacheEffT,
+		"specificity":      specificT,
+		"session_hygiene":  hygieneT,
+	}
 	minTier := outputRatioT
-	if ownershipT < minTier {
-		minTier = ownershipT
-	}
-	if specificT < minTier {
-		minTier = specificT
-	}
-	if hygieneT < minTier {
-		minTier = hygieneT
+	weakestDim := "output_ratio"
+	for dim, t := range tierScores {
+		if t < minTier {
+			minTier = t
+			weakestDim = dim
+		}
 	}
 	overallTier := tierName(minTier)
 	overallScore := tierScore(overallTier)
 
 	// ── Dimensions ────────────────────────────────────────────────────────────
-	ratioStr := fmt.Sprintf("%.1f×", outputRatio)
-	ownerStr := fmt.Sprintf("%.0f%%", ownershipPct)
-	specStr := fmt.Sprintf("%.0f%%", specificPct)
-	hygieneStr := fmt.Sprintf("%.1f turns", avgTurns)
-
 	dimensions := []models.InsightDimension{
 		{
 			Label: "Output ratio",
 			Score: tierToBarScore(tierName(outputRatioT)),
 			Tier:  tierName(outputRatioT),
-			Value: ratioStr,
+			Value: fmt.Sprintf("%.1f×", outputRatio),
 		},
 		{
-			Label: "Prompt ownership",
-			Score: tierToBarScore(tierName(ownershipT)),
-			Tier:  tierName(ownershipT),
-			Value: ownerStr,
+			Label: "Cache efficiency",
+			Score: tierToBarScore(tierName(cacheEffT)),
+			Tier:  tierName(cacheEffT),
+			Value: fmt.Sprintf("%.0f%%", cacheEffPct),
 		},
 		{
 			Label: "Specificity",
 			Score: tierToBarScore(tierName(specificT)),
 			Tier:  tierName(specificT),
-			Value: specStr,
+			Value: fmt.Sprintf("%.0f%%", specificPct),
 		},
 		{
 			Label: "Session hygiene",
 			Score: tierToBarScore(tierName(hygieneT)),
 			Tier:  tierName(hygieneT),
-			Value: hygieneStr,
+			Value: fmt.Sprintf("%.1f turns", avgTurns),
 		},
 	}
 
@@ -787,28 +789,28 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		insights = append(insights, models.Insight{
 			Type:  "warning",
 			Title: "Low Output Ratio",
-			Text:  fmt.Sprintf("Claude produces %.1f× your input. Aim for 2×+ by asking for complete implementations rather than explaining what you want step-by-step.", outputRatio),
+			Text:  fmt.Sprintf("Claude produces %.1f× your input. Aim for 2×+ — ask for full implementations instead of partial steps. Example: \"implement the entire handler\" vs \"show me how to start\".", outputRatio),
 		})
 	} else {
 		insights = append(insights, models.Insight{
 			Type:  "success",
 			Title: "Strong Output Ratio",
-			Text:  fmt.Sprintf("%.1f× output per input token — Claude is doing heavy lifting. Good delegation pattern.", outputRatio),
+			Text:  fmt.Sprintf("%.1f× output per input — you're delegating effectively. Community median is ~2.1×.", outputRatio),
 		})
 	}
 
-	// Ownership insight
-	if ownershipT < 2 {
-		insights = append(insights, models.Insight{
-			Type:  "info",
-			Title: "High Context Overhead",
-			Text:  fmt.Sprintf("Only %.0f%% of tokens are your new content — the rest is repeated context (CLAUDE.md, history). Shorter, focused sessions reduce re-sent context.", ownershipPct),
-		})
-	} else {
+	// Cache efficiency insight
+	if cacheEffT >= 3 {
 		insights = append(insights, models.Insight{
 			Type:  "success",
-			Title: "Efficient Context Use",
-			Text:  fmt.Sprintf("%.0f%% of input tokens are your new instructions — context overhead is well-managed.", ownershipPct),
+			Title: "Expert Cache Efficiency",
+			Text:  fmt.Sprintf("%.0f%% of context served from cache — you maintain stable CLAUDE.md and consistent workspaces. This puts you in the top 10%% for cost efficiency.", cacheEffPct),
+		})
+	} else if cacheEffT < 2 {
+		insights = append(insights, models.Insight{
+			Type:  "info",
+			Title: "Cache Efficiency",
+			Text:  fmt.Sprintf("%.0f%% cache hit rate. Keep CLAUDE.md stable and work from the same project directory to improve this. Community median is ~65%%.", cacheEffPct),
 		})
 	}
 
@@ -817,13 +819,13 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		insights = append(insights, models.Insight{
 			Type:  "info",
 			Title: "Low Prompt Specificity",
-			Text:  fmt.Sprintf("%.0f%% of prompts reference specific files or code. Include file paths and function names to cut search overhead.", specificPct),
+			Text:  fmt.Sprintf("%.0f%% of prompts reference specific files or code. Community median is ~42%%. Add file paths, function names, or line numbers — e.g. \"in internal/api/handlers.go:157\" vs \"in the handler\".", specificPct),
 		})
 	} else {
 		insights = append(insights, models.Insight{
 			Type:  "success",
 			Title: "Specific Prompts",
-			Text:  fmt.Sprintf("%.0f%% of prompts cite specific files or code — reduces unnecessary tool calls.", specificPct),
+			Text:  fmt.Sprintf("%.0f%% of prompts cite specific files or code — reduces unnecessary search tool calls.", specificPct),
 		})
 	}
 
@@ -832,13 +834,13 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		insights = append(insights, models.Insight{
 			Type:  "warning",
 			Title: "Long Sessions Detected",
-			Text:  fmt.Sprintf("%d session%s exceeded 50 turns. Use /clear between unrelated tasks to avoid context bloat.", highCtxSessions, pluralS(highCtxSessions)),
+			Text:  fmt.Sprintf("%d session%s exceeded 50 turns (community median: ~22). Use /clear between unrelated tasks — context bloat causes Claude to lose focus and repeat earlier work.", highCtxSessions, pluralS(highCtxSessions)),
 		})
 	} else if hygieneT < 2 {
 		insights = append(insights, models.Insight{
 			Type:  "info",
-			Title: "Session Length",
-			Text:  fmt.Sprintf("Average %.1f turns/session. Consider /clear when switching between unrelated tasks.", avgTurns),
+			Title: "Session Length Above Median",
+			Text:  fmt.Sprintf("Average %.1f turns/session vs community median ~22. Use /clear when switching tasks — each new session starts clean and costs less in repeated context.", avgTurns),
 		})
 	} else {
 		insights = append(insights, models.Insight{
@@ -847,6 +849,75 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 			Text:  fmt.Sprintf("Average %.1f turns/session — sessions stay focused.", avgTurns),
 		})
 	}
+
+	// ── Next Tier Goals ───────────────────────────────────────────────────────
+	// Show what each dimension needs to reach the next overall tier
+	nextT := minTier + 1
+	if nextT > 3 {
+		nextT = 3
+	}
+	var nextTierGoals []models.TierGoal
+
+	// Output ratio goal
+	outThresholds := []float64{1.0, 2.0, 3.0} // Intermediate, Advanced, Expert
+	outTarget := outThresholds[min3(nextT-1, 2)]
+	nextTierGoals = append(nextTierGoals, models.TierGoal{
+		Dimension:    "Output ratio",
+		CurrentValue: fmt.Sprintf("%.1f×", outputRatio),
+		TargetValue:  fmt.Sprintf("%.0f×+", outTarget),
+		Delta:        fmt.Sprintf("+%.1f×", math.Max(0, outTarget-outputRatio)),
+		CurrentTier:  tierName(outputRatioT),
+		NextTier:     tierName(nextT),
+		Met:          outputRatioT >= nextT,
+		IsWeakest:    weakestDim == "output_ratio",
+	})
+
+	// Cache efficiency goal
+	cacheThresholds := []float64{40.0, 65.0, 85.0}
+	cacheTarget := cacheThresholds[min3(nextT-1, 2)]
+	nextTierGoals = append(nextTierGoals, models.TierGoal{
+		Dimension:    "Cache efficiency",
+		CurrentValue: fmt.Sprintf("%.0f%%", cacheEffPct),
+		TargetValue:  fmt.Sprintf("%.0f%%+", cacheTarget),
+		Delta:        fmt.Sprintf("+%.0f%%", math.Max(0, cacheTarget-cacheEffPct)),
+		CurrentTier:  tierName(cacheEffT),
+		NextTier:     tierName(nextT),
+		Met:          cacheEffT >= nextT,
+		IsWeakest:    weakestDim == "cache_efficiency",
+	})
+
+	// Specificity goal
+	specThresholds := []float64{20.0, 40.0, 60.0}
+	specTarget := specThresholds[min3(nextT-1, 2)]
+	nextTierGoals = append(nextTierGoals, models.TierGoal{
+		Dimension:    "Specificity",
+		CurrentValue: fmt.Sprintf("%.0f%%", specificPct),
+		TargetValue:  fmt.Sprintf("%.0f%%+", specTarget),
+		Delta:        fmt.Sprintf("+%.0f%%", math.Max(0, specTarget-specificPct)),
+		CurrentTier:  tierName(specificT),
+		NextTier:     tierName(nextT),
+		Met:          specificT >= nextT,
+		IsWeakest:    weakestDim == "specificity",
+	})
+
+	// Session hygiene goal (lower is better — turns)
+	hygieneThresholds := []float64{35.0, 20.0, 12.0} // Intermediate, Advanced, Expert ceiling
+	hygieneTarget := hygieneThresholds[min3(nextT-1, 2)]
+	hygieneMetGoal := hygieneT >= nextT
+	hygieneDelta := ""
+	if !hygieneMetGoal {
+		hygieneDelta = fmt.Sprintf("−%.1f turns", math.Max(0, avgTurns-hygieneTarget))
+	}
+	nextTierGoals = append(nextTierGoals, models.TierGoal{
+		Dimension:    "Session hygiene",
+		CurrentValue: fmt.Sprintf("%.1f turns", avgTurns),
+		TargetValue:  fmt.Sprintf("<%.0f turns", hygieneTarget),
+		Delta:        hygieneDelta,
+		CurrentTier:  tierName(hygieneT),
+		NextTier:     tierName(nextT),
+		Met:          hygieneMetGoal,
+		IsWeakest:    weakestDim == "session_hygiene",
+	})
 
 	// ── Avg prompt length (for legacy raw metric) ────────────────────────────
 	var totalLen int
@@ -887,7 +958,7 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		Tier:            overallTier,
 		Dimensions:      dimensions,
 		Insights:        insights,
-		CachePct:        0, // removed — kept for JSON compat
+		CachePct:        math.Round(cacheEffPct*10) / 10,
 		AvgTurns:        math.Round(avgTurns*10) / 10,
 		HighCtxSessions: highCtxSessions,
 		SpecificPct:     math.Round(specificPct*10) / 10,
@@ -895,9 +966,17 @@ func (h *Handler) getInsights(w http.ResponseWriter, r *http.Request) {
 		AvgPromptLen:    math.Round(avgPromptLen),
 		OutputRatio:     math.Round(outputRatio*100) / 100,
 		OwnershipPct:    math.Round(ownershipPct*10) / 10,
+		NextTierGoals:   nextTierGoals,
 		AIAnalysis:      aiAnalysis,
 		AILoading:       aiLoading,
 	})
+}
+
+func min3(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // isSpecificPrompt returns true if the prompt references specific code artifacts
@@ -982,7 +1061,7 @@ func outputRatioTier(ratio float64) int {
 	}
 }
 
-// ownershipTier returns 0-3 tier for fresh-input ownership %.
+// ownershipTier kept for reference but no longer used in scoring.
 func ownershipTier(pct float64) int {
 	switch {
 	case pct > 25:
@@ -993,6 +1072,22 @@ func ownershipTier(pct float64) int {
 		return 1
 	default:
 		return 0
+	}
+}
+
+// cacheEfficiencyTier returns 0-3 tier for cache hit %.
+// Higher cache % = better (less redundant token spend).
+// 99% cache efficiency (as seen in heavy Claude Code use) = Expert.
+func cacheEfficiencyTier(pct float64) int {
+	switch {
+	case pct > 85:
+		return 3 // Expert
+	case pct > 65:
+		return 2 // Advanced
+	case pct > 40:
+		return 1 // Intermediate
+	default:
+		return 0 // Beginner
 	}
 }
 

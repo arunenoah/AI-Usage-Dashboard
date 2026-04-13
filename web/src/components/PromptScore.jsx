@@ -24,11 +24,22 @@ const INSIGHT_STYLE = {
 }
 
 const TIER_CRITERIA = {
-  Expert:       'Output >3×  ·  Ownership >25%  ·  Specificity >60%  ·  Avg turns <12',
-  Advanced:     'Output >2×  ·  Ownership >15%  ·  Specificity >40%  ·  Avg turns <20',
-  Intermediate: 'Output >1×  ·  Ownership >8%   ·  Specificity >20%  ·  Avg turns <35',
+  Expert:       'Output >3×  ·  Cache >85%  ·  Specificity >60%  ·  Avg turns <12',
+  Advanced:     'Output >2×  ·  Cache >65%  ·  Specificity >40%  ·  Avg turns <20',
+  Intermediate: 'Output >1×  ·  Cache >40%  ·  Specificity >20%  ·  Avg turns <35',
   Beginner:     'Below Intermediate thresholds on one or more dimensions',
 }
+
+// Hardcoded community benchmarks (realistic p50 / p90 for active Claude Code devs)
+const BENCHMARKS = {
+  'Output ratio':     { p50: 2.1,  p90: 4.5,  unit: '×',    higherIsBetter: true,  max: 6.0 },
+  'Cache efficiency': { p50: 65,   p90: 90,   unit: '%',    higherIsBetter: true,  max: 100 },
+  'Specificity':      { p50: 42,   p90: 72,   unit: '%',    higherIsBetter: true,  max: 100 },
+  'Session hygiene':  { p50: 22,   p90: 8,    unit: ' turns', higherIsBetter: false, max: 60 },
+}
+
+const TIER_RANK = { Beginner: 0, Intermediate: 1, Advanced: 2, Expert: 3 }
+const NEXT_TIER = { Beginner: 'Intermediate', Intermediate: 'Advanced', Advanced: 'Expert', Expert: null }
 
 export default function PromptScore({ days = 30 }) {
   const [data, setData] = useState(null)
@@ -145,6 +156,14 @@ export default function PromptScore({ days = 30 }) {
           </span>
         )}
       </div>
+
+      {/* Path to next tier */}
+      {NEXT_TIER[tier] && data.next_tier_goals && data.next_tier_goals.length > 0 && (
+        <NextTierCard goals={data.next_tier_goals} tier={tier} nextTier={NEXT_TIER[tier]} />
+      )}
+
+      {/* Peer comparison */}
+      <PeerComparison data={data} tierColor={tierColor} />
 
       {/* Raw metric pills */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -286,6 +305,201 @@ export default function PromptScore({ days = 30 }) {
             )}
           </>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ── Next Tier Card ────────────────────────────────────────────────────────────
+function NextTierCard({ goals, tier, nextTier }) {
+  const unmet = goals.filter(g => !g.met)
+  const met = goals.filter(g => g.met)
+  const nextColor = TIER_COLOR[nextTier] || '#1A73E8'
+  const nextBg = TIER_BG[nextTier] || '#EBF3FF'
+
+  return (
+    <div style={{ background: nextBg, border: `1px solid ${nextColor}25`, borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 800, color: '#344767' }}>Path to</span>
+          <span style={{ fontSize: 11, fontWeight: 800, padding: '2px 10px', borderRadius: 20, background: nextColor, color: '#fff', letterSpacing: 0.3 }}>
+            {nextTier.toUpperCase()}
+          </span>
+        </div>
+        <span style={{ fontSize: 10, color: '#9baabf' }}>
+          {met.length}/{goals.length} met
+        </span>
+      </div>
+
+      {/* Goals list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {goals.map((g, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Status dot */}
+            <span style={{
+              width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+              background: g.met ? '#22c55e' : (g.is_weakest ? '#ef4444' : '#f59e0b'),
+              display: 'grid', placeItems: 'center',
+              fontSize: 9, color: '#fff', fontWeight: 800,
+            }}>
+              {g.met ? '✓' : g.is_weakest ? '!' : '·'}
+            </span>
+
+            {/* Dimension name */}
+            <span style={{
+              fontSize: 11, color: '#344767', flex: 1,
+              fontWeight: g.is_weakest ? 700 : 500,
+            }}>
+              {g.dimension}
+              {g.is_weakest && (
+                <span style={{ marginLeft: 6, fontSize: 9, background: '#FEECEC', color: '#ef4444', padding: '1px 5px', borderRadius: 6, fontWeight: 700 }}>
+                  blocking
+                </span>
+              )}
+            </span>
+
+            {/* Current value */}
+            <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', color: g.met ? '#22c55e' : '#7b809a' }}>
+              {g.current_value}
+            </span>
+
+            {/* Arrow + target (only if not met) */}
+            {!g.met && (
+              <>
+                <span style={{ fontSize: 9, color: '#c4cdd6' }}>→</span>
+                <span style={{ fontSize: 10, fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#344767' }}>
+                  {g.target_value}
+                </span>
+                {g.delta && (
+                  <span style={{
+                    fontSize: 9, padding: '1px 6px', borderRadius: 8, fontWeight: 700,
+                    background: g.is_weakest ? '#FEECEC' : '#FFF3E0',
+                    color: g.is_weakest ? '#ef4444' : '#f59e0b',
+                  }}>
+                    {g.delta}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Motivational footer */}
+      {unmet.length === 1 && (
+        <div style={{ marginTop: 10, fontSize: 10, color: nextColor, fontWeight: 700, borderTop: `1px solid ${nextColor}20`, paddingTop: 8 }}>
+          One dimension away from {nextTier} — fix {unmet[0].dimension.toLowerCase()} to level up!
+        </div>
+      )}
+      {unmet.length === 0 && (
+        <div style={{ marginTop: 10, fontSize: 10, color: '#22c55e', fontWeight: 700, borderTop: '1px solid #22c55e20', paddingTop: 8 }}>
+          All {nextTier} thresholds met!
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Peer Comparison ───────────────────────────────────────────────────────────
+function PeerComparison({ data, tierColor }) {
+  const rows = [
+    {
+      label: 'Output ratio',
+      user: data.output_ratio,
+      bm: BENCHMARKS['Output ratio'],
+      getValue: () => data.output_ratio,
+    },
+    {
+      label: 'Cache eff.',
+      user: data.cache_pct,
+      bm: BENCHMARKS['Cache efficiency'],
+      getValue: () => data.cache_pct,
+    },
+    {
+      label: 'Specificity',
+      user: data.specific_pct,
+      bm: BENCHMARKS['Specificity'],
+      getValue: () => data.specific_pct,
+    },
+    {
+      label: 'Avg turns',
+      user: data.avg_turns,
+      bm: BENCHMARKS['Session hygiene'],
+      getValue: () => data.avg_turns,
+    },
+  ]
+
+  return (
+    <div style={{ marginBottom: 16, background: '#f8f9fa', borderRadius: 12, padding: '12px 14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#9baabf', textTransform: 'uppercase', letterSpacing: 1 }}>
+          vs Community
+        </span>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 8, height: 2, background: '#9baabf', borderRadius: 1 }} />
+            <span style={{ fontSize: 9, color: '#9baabf' }}>median</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: tierColor }} />
+            <span style={{ fontSize: 9, color: '#9baabf' }}>you</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+        {rows.map(({ label, user, bm }) => {
+          const max = bm.max
+          const userPct = Math.min((user / max) * 100, 98)
+          const p50Pct = Math.min((bm.p50 / max) * 100, 98)
+          const p90Pct = Math.min((bm.p90 / max) * 100, 98)
+          const isAboveMedian = bm.higherIsBetter ? user >= bm.p50 : user <= bm.p50
+          const isTop10 = bm.higherIsBetter ? user >= bm.p90 : user <= bm.p90
+
+          return (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 10, color: '#7b809a', width: 74, flexShrink: 0 }}>{label}</span>
+              <div style={{ flex: 1, height: 4, background: '#e8eaf0', borderRadius: 2, position: 'relative' }}>
+                {/* P90 zone */}
+                <div style={{
+                  position: 'absolute',
+                  left: `${Math.min(p90Pct, p50Pct)}%`,
+                  right: `${100 - Math.max(p90Pct, p50Pct)}%`,
+                  top: 0, height: '100%',
+                  background: '#e0e7ff', borderRadius: 2,
+                }} />
+                {/* P50 marker */}
+                <div style={{
+                  position: 'absolute', left: `${p50Pct}%`, top: -3,
+                  width: 2, height: 10, background: '#9baabf', borderRadius: 1,
+                  transform: 'translateX(-50%)',
+                }} />
+                {/* User dot */}
+                <div style={{
+                  position: 'absolute', left: `${userPct}%`, top: -4,
+                  width: 12, height: 12, borderRadius: '50%',
+                  background: isTop10 ? '#22c55e' : isAboveMedian ? '#1A73E8' : '#f59e0b',
+                  border: '2px solid #fff',
+                  transform: 'translateX(-50%)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+                }} />
+              </div>
+              <span style={{ fontSize: 9, color: '#9baabf', width: 30, textAlign: 'right', flexShrink: 0 }}>
+                {bm.p50}{bm.unit === ' turns' ? '' : bm.unit}
+              </span>
+              {isTop10 && (
+                <span style={{ fontSize: 9, color: '#22c55e', fontWeight: 700, width: 40, flexShrink: 0 }}>top 10%</span>
+              )}
+              {!isTop10 && isAboveMedian && (
+                <span style={{ fontSize: 9, color: '#1A73E8', width: 40, flexShrink: 0 }}>above avg</span>
+              )}
+              {!isAboveMedian && (
+                <span style={{ fontSize: 9, color: '#f59e0b', width: 40, flexShrink: 0 }}>below avg</span>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
