@@ -130,6 +130,12 @@ AI-generated feedback on your prompting style. Includes:
 
 ## Related Resources
 
-- **README:** [arunenoah/AI-Usage-Dashboard](https://github.com/arunenoah/AI-Usage-Dashboard) — Quick reference and API docs
-- **Main Wiki:** Home page with all sections
-- **GitHub Issues:** Report terms that are unclear or add new ones
+- **[Home](Home.md)** — Back to wiki home page with role-based navigation
+- **[README](../README.md)** — Quick reference, installation, and API docs
+- **GitHub Issues** — [Report a bug or request a feature](https://github.com/arunenoah/AI-Usage-Dashboard/issues)
+
+## Next Steps
+
+- **New to the dashboard?** See the [User Path Quick Start](Home.md#user-path)
+- **Want to contribute?** See the [Developer Path Quick Start](Home.md#developer-path)
+- **Looking for a specific topic?** Use the search bar or browse by section on the [Home](Home.md) page

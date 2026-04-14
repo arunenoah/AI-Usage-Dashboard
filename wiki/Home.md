@@ -66,13 +66,38 @@ Ready to extend the dashboard or contribute?
 ## Reference
 
 - **[Glossary](Glossary)** — Terms, definitions, concepts
-- **[README](https://github.com/arunenoah/AI-Usage-Dashboard)** — Quick reference, API docs, architecture 101
-- **[GitHub Issues](https://github.com/arunenoah/AI-Usage-Dashboard/issues)** — Report bugs or request features
+- **[README](../README.md)** — Quick reference, API docs, installation, quick start
+- **[GitHub Repository](https://github.com/arunenoah/AI-Usage-Dashboard)** — Source code, releases, and project home
 
 ---
 
 ## Quick Links
 
 - 🔗 **View on GitHub:** [arunenoah/AI-Usage-Dashboard](https://github.com/arunenoah/AI-Usage-Dashboard)
-- 🐛 **Report a Bug:** [Open an Issue](https://github.com/arunenoah/AI-Usage-Dashboard/issues/new)
-- 📝 **Contribute:** [See Contributing Guide](Dev-PR-Process)
+- 🐛 **Report a Bug:** [GitHub Issues](https://github.com/arunenoah/AI-Usage-Dashboard/issues/new)
+- 📝 **Contribute:** See contributing guide from the Developer Path
+
+---
+
+## Documentation Structure
+
+**This wiki serves two audiences:**
+
+| Path | For | Starts With |
+|------|-----|-------------|
+| **User Path** | End users, learners, power users | [Quick Start (5 min)](User-Getting-Started-Quick-Start) |
+| **Developer Path** | Contributors, maintainers, extenders | [Quick Start (5 min)](Dev-Getting-Started-Quick-Start) |
+
+**All paths share:**
+- [Glossary](Glossary) — Terms and concepts
+- This home page navigation
+
+---
+
+## Page Navigation Hints
+
+- **Got stuck installing?** → [Installation Guide](User-Installation)
+- **Don't understand CARE scores?** → [CARE Scoring Explained](User-CARE-Scoring-Explained)
+- **Want to add an adapter?** → [Adapter Development Guide](Dev-Adapter-Development-Guide)
+- **Need to see how it all fits together?** → [System Design Overview](Dev-System-Design-Overview)
+- **Not sure what a term means?** → [Glossary](Glossary)
