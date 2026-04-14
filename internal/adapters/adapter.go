@@ -11,3 +11,10 @@ type Adapter interface {
 	// Parse reads one session file and returns a parsed Session
 	Parse(path string) (*models.Session, error)
 }
+
+// MultiSessionAdapter can return multiple sessions from a single path (e.g. a database).
+type MultiSessionAdapter interface {
+	Adapter
+	// ParseAll reads all sessions from a single path (e.g. a SQLite database).
+	ParseAll(path string) ([]*models.Session, error)
+}

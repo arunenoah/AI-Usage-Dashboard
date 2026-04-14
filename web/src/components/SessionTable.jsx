@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 
 const TOOL_BADGE = {
-  'claude-code':    { label: 'CLAUDE',  bg: '#EDE7F6', color: '#7B1FA2' },
-  cursor:           { label: 'CURSOR',  bg: '#E3F2FD', color: '#1565C0' },
-  copilot:          { label: 'COPILOT', bg: '#E8F0FE', color: '#1A73E8' },
-  'github-copilot': { label: 'COPILOT', bg: '#E8F0FE', color: '#1A73E8' },
+  'claude-code':    { label: 'CLAUDE',   bg: '#EDE7F6', color: '#7B1FA2' },
+  cursor:           { label: 'CURSOR',   bg: '#E3F2FD', color: '#1565C0' },
+  copilot:          { label: 'COPILOT',  bg: '#E8F0FE', color: '#1A73E8' },
+  'github-copilot': { label: 'COPILOT',  bg: '#E8F0FE', color: '#1A73E8' },
   windsurf:         { label: 'WINDSURF', bg: '#E8F5E9', color: '#2E7D32' },
+  opencode:         { label: 'OPENCODE', bg: '#FFF3E0', color: '#E65100' },
 }
 
 function toolBadge(source) {
@@ -75,7 +76,7 @@ export default function SessionTable({ sessions = [], total = 0, onSessionClick,
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 15
 
-  const tabs = ['All', 'Claude', 'Cursor', 'Copilot']
+  const tabs = ['All', 'Claude', 'Copilot', 'Windsurf', 'OpenCode']
 
   const filtered = useMemo(() => sessions.filter(s => {
     const q = query.toLowerCase()
@@ -83,7 +84,9 @@ export default function SessionTable({ sessions = [], total = 0, onSessionClick,
     const matchTab = tab === 'All' ||
       (tab === 'Claude' && s.source === 'claude-code') ||
       (tab === 'Cursor' && s.source === 'cursor') ||
-      (tab === 'Copilot' && (s.source === 'copilot' || s.source === 'github-copilot'))
+      (tab === 'Copilot' && (s.source === 'copilot' || s.source === 'github-copilot')) ||
+      (tab === 'Windsurf' && s.source === 'windsurf') ||
+      (tab === 'OpenCode' && s.source === 'opencode')
     const matchProject = selectedProject === 'all' || s.project_dir === selectedProject
     return matchQ && matchTab && matchProject
   }), [sessions, query, tab, selectedProject])
@@ -204,7 +207,7 @@ export default function SessionTable({ sessions = [], total = 0, onSessionClick,
                   </td>
                   <td style={{ padding: '10px 10px' }}>{branchBadge(branch)}</td>
                   <td style={{ padding: '10px 10px', fontFamily: 'JetBrains Mono', fontSize: 11, color: '#4CAF50', fontWeight: 600 }}>
-                    {s.source === 'github-copilot'
+                    {(s.source === 'github-copilot' || s.source === 'windsurf')
                       ? <span style={{ color: '#9baabf', fontSize: 10, fontWeight: 500 }}>flat‑rate</span>
                       : `$${cost.toFixed(3)}`}
                   </td>

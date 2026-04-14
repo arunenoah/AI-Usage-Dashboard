@@ -48,12 +48,27 @@ func (s *Store) LoadAll(adapters_ ...adapters.Adapter) error {
 	}
 	for _, adapter := range adapters_ {
 		paths := adapter.Detect(home)
-		for _, p := range paths {
-			sess, err := adapter.Parse(p)
-			if err != nil {
-				continue
+		// Check if adapter supports multi-session parsing (e.g. SQLite databases)
+		if multi, ok := adapter.(adapters.MultiSessionAdapter); ok {
+			for _, p := range paths {
+				sessions, err := multi.ParseAll(p)
+				if err != nil {
+					continue
+				}
+				for _, sess := range sessions {
+					if sess != nil {
+						s.Upsert(sess)
+					}
+				}
 			}
-			s.Upsert(sess)
+		} else {
+			for _, p := range paths {
+				sess, err := adapter.Parse(p)
+				if err != nil || sess == nil {
+					continue
+				}
+				s.Upsert(sess)
+			}
 		}
 	}
 	return nil

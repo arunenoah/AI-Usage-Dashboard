@@ -12,6 +12,8 @@ import (
 
 	"github.com/ai-sessions/ai-sessions/internal/adapters/claudecode"
 	"github.com/ai-sessions/ai-sessions/internal/adapters/copilot"
+	"github.com/ai-sessions/ai-sessions/internal/adapters/opencode"
+	"github.com/ai-sessions/ai-sessions/internal/adapters/windsurf"
 	"github.com/ai-sessions/ai-sessions/internal/api"
 	"github.com/ai-sessions/ai-sessions/internal/store"
 	"github.com/ai-sessions/ai-sessions/internal/watcher"
@@ -29,24 +31,30 @@ func main() {
 
 	claudeAdapter := &claudecode.Adapter{}
 	copilotAdapter := &copilot.Adapter{}
+	opencodeAdapter := &opencode.Adapter{}
+	windsurfAdapter := &windsurf.Adapter{}
 	sessionStore := store.New()
 	hub := ws.NewHub()
 
-	if err := sessionStore.LoadAll(claudeAdapter, copilotAdapter); err != nil {
+	if err := sessionStore.LoadAll(claudeAdapter, copilotAdapter, opencodeAdapter, windsurfAdapter); err != nil {
 		log.Printf("initial load warning: %v", err)
 	}
+	home, _ := os.UserHomeDir()
 	log.Printf("loaded %d sessions total", len(sessionStore.Sessions()))
 	log.Printf("  claude-code:    %d sessions", len(sessionStore.SessionsBySource("claude-code")))
 	log.Printf("  github-copilot: %d sessions", len(sessionStore.SessionsBySource("github-copilot")))
+	log.Printf("  opencode:       %d sessions", len(sessionStore.SessionsBySource("opencode")))
+	log.Printf("  windsurf:       %d sessions", len(sessionStore.SessionsBySource("windsurf")))
 
 	// Determine watch directories
-	home, _ := os.UserHomeDir()
 	claudeWatchDir := filepath.Join(home, ".claude", "projects")
 	copilotWatchDir := vsCodeWorkspaceStorageDir(home)
+	windsurfWatchDir := windsurf.WindsurfWatchDir(home)
 
 	w := watcher.New(sessionStore, hub,
 		watcher.Target{Dir: claudeWatchDir, Adapter: claudeAdapter},
 		watcher.Target{Dir: copilotWatchDir, Adapter: copilotAdapter},
+		watcher.Target{Dir: windsurfWatchDir, Adapter: windsurfAdapter},
 	)
 	if err := w.Start(); err != nil {
 		log.Printf("watcher warning: %v", err)
