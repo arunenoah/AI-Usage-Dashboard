@@ -98,16 +98,20 @@ class Store {
             daySessions.forEach(session => {
                 dailyStats.input_tokens += session.total_usage?.input_tokens || 0;
                 dailyStats.output_tokens += session.total_usage?.output_tokens || 0;
-                // Cost calculation: $0.003 per 1M input tokens, $0.015 per 1M output tokens
+                // Cost calculation: $0.003/1M input, $0.015/1M output, $0.30/1M cache_read, $3.75/1M cache_write
                 const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
                 const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
-                dailyStats.est_cost_usd += inputCost + outputCost;
+                const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
+                const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
+                dailyStats.est_cost_usd += inputCost + outputCost + cacheReadCost + cacheWriteCost;
             });
             result.push(dailyStats);
         }
         // Aggregate totals
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
+        let totalCacheReadTokens = 0;
+        let totalCacheCreationTokens = 0;
         let totalCost = 0;
         const toolCounts = {};
         const projectSet = new Set();
@@ -124,9 +128,13 @@ class Store {
         this.sessionList.forEach(session => {
             totalInputTokens += session.total_usage?.input_tokens || 0;
             totalOutputTokens += session.total_usage?.output_tokens || 0;
+            totalCacheReadTokens += session.total_usage?.cache_read_input_tokens || 0;
+            totalCacheCreationTokens += session.total_usage?.cache_creation_input_tokens || 0;
             const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
             const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
-            totalCost += inputCost + outputCost;
+            const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
+            const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
+            totalCost += inputCost + outputCost + cacheReadCost + cacheWriteCost;
             // Aggregate tool counts
             if (session.tool_counts) {
                 Object.entries(session.tool_counts).forEach(([tool, count]) => {
@@ -142,6 +150,8 @@ class Store {
             total_sessions: this.sessionList.length,
             total_input_tokens: totalInputTokens,
             total_output_tokens: totalOutputTokens,
+            total_cache_read_tokens: totalCacheReadTokens,
+            total_cache_creation_tokens: totalCacheCreationTokens,
             total_cost_usd: totalCost,
             tool_counts: toolCounts,
             projects: Array.from(projectSet),
@@ -182,7 +192,9 @@ class Store {
                 dailyStats.output_tokens += session.total_usage?.output_tokens || 0;
                 const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
                 const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
-                dailyStats.est_cost_usd += inputCost + outputCost;
+                const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
+                const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
+                dailyStats.est_cost_usd += inputCost + outputCost + cacheReadCost + cacheWriteCost;
             });
             result.push(dailyStats);
             current.setDate(current.getDate() + 1);
@@ -195,15 +207,21 @@ class Store {
         // Aggregate totals for range
         let totalInputTokens = 0;
         let totalOutputTokens = 0;
+        let totalCacheReadTokens = 0;
+        let totalCacheCreationTokens = 0;
         let totalCost = 0;
         const toolCounts = {};
         const projectSet = new Set();
         rangeSessions.forEach(session => {
             totalInputTokens += session.total_usage?.input_tokens || 0;
             totalOutputTokens += session.total_usage?.output_tokens || 0;
+            totalCacheReadTokens += session.total_usage?.cache_read_input_tokens || 0;
+            totalCacheCreationTokens += session.total_usage?.cache_creation_input_tokens || 0;
             const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
             const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
-            totalCost += inputCost + outputCost;
+            const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
+            const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
+            totalCost += inputCost + outputCost + cacheReadCost + cacheWriteCost;
             if (session.tool_counts) {
                 Object.entries(session.tool_counts).forEach(([tool, count]) => {
                     toolCounts[tool] = (toolCounts[tool] || 0) + count;
@@ -217,6 +235,8 @@ class Store {
             total_sessions: rangeSessions.length,
             total_input_tokens: totalInputTokens,
             total_output_tokens: totalOutputTokens,
+            total_cache_read_tokens: totalCacheReadTokens,
+            total_cache_creation_tokens: totalCacheCreationTokens,
             total_cost_usd: totalCost,
             tool_counts: toolCounts,
             projects: Array.from(projectSet),
@@ -310,8 +330,9 @@ class Store {
                             cost: 0,
                             prompt_score: 7
                         };
-                        // Calculate cost
+                        // Calculate cost, usage, and context%
                         if (sumInput + sumOutput > 0) {
+                            const contextWindow = 200000;
                             pair.usage = {
                                 input_tokens: sumInput,
                                 output_tokens: sumOutput,
@@ -322,7 +343,10 @@ class Store {
                             const outputCost = (sumOutput / 1000000) * 0.015;
                             const cacheReadCost = (lastCacheRead / 1000000) * 0.30;
                             const cacheWriteCost = (sumCacheWrite / 1000000) * 3.75;
-                            pair.cost = inputCost + outputCost + cacheReadCost + cacheWriteCost;
+                            pair.cost = Math.round((inputCost + outputCost + cacheReadCost + cacheWriteCost) * 10000) / 10000;
+                            // Context% = (last cache_read + sum input) / window — shows depth at end of response
+                            const contextPct = (lastCacheRead + sumInput) / contextWindow * 100;
+                            pair.context_pct = Math.round(contextPct * 10) / 10;
                         }
                         this.conversationPairs.push(pair);
                         i = j - 1; // Skip processed assistant turns
