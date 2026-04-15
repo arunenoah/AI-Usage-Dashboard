@@ -1,4 +1,8 @@
 import { Session, DailyStats } from '../types/models';
+import { ClaudeCodeAdapter } from '../adapters/claudecode';
+import { CopilotAdapter } from '../adapters/copilot';
+import { OpenCodeAdapter } from '../adapters/opencode';
+import { WindsurfAdapter } from '../adapters/windsurf';
 
 /**
  * In-memory session store for managing AI usage sessions
@@ -8,6 +12,7 @@ import { Session, DailyStats } from '../types/models';
  * - Filter sessions by source (claude-code, github-copilot, opencode, windsurf)
  * - Calculate daily statistics
  * - Calculate statistics for date ranges
+ * - Load sessions from all configured adapters
  */
 export class Store {
   private sessionList: Session[] = [];
@@ -38,13 +43,28 @@ export class Store {
   }
 
   /**
-   * Loads all sessions from adapters (async placeholder for future implementation)
-   * This will be implemented when adapters are integrated
+   * Loads all sessions from all configured adapters
+   *
+   * Sequentially calls each adapter to retrieve sessions and merges
+   * them into a single in-memory store. Adapters are called in order:
+   * 1. Claude Code
+   * 2. GitHub Copilot
+   * 3. OpenCode
+   * 4. Windsurf
    */
   async loadAll(): Promise<void> {
-    // Load sessions from adapter sources
-    // This will be implemented when adapters are ready
+    const adapters = [
+      new ClaudeCodeAdapter(),
+      new CopilotAdapter(),
+      new OpenCodeAdapter(),
+      new WindsurfAdapter()
+    ];
+
     this.sessionList = [];
+    for (const adapter of adapters) {
+      const sessions = await adapter.getSessions();
+      this.sessionList.push(...sessions);
+    }
   }
 
   /**
