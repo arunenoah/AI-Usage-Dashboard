@@ -15,7 +15,20 @@
 
 ## Quick Start
 
-### Installation
+Choose your backend (Go or NodeJS) and run:
+
+```bash
+echo '{ "backend": "nodejs" }' > backend.config.json
+npm run setup
+npm start
+```
+
+Open your browser to `http://localhost:8765`
+
+See [Backend Selection Guide](./docs/BACKEND_SELECTION.md) for details, comparison, and switching backends.
+
+### Legacy Installation (Go only)
+
 ```bash
 # Prerequisites: Go 1.18+, Node.js 16+
 git clone https://github.com/arunenoah/AI-Usage-Dashboard.git
@@ -23,8 +36,6 @@ cd ai-sessions
 make build
 ./ai-sessions
 ```
-
-Default URL: `http://localhost:8765`
 
 For detailed setup instructions, see the [Installation Guide](wiki/User-Installation.md) in the wiki.
 
