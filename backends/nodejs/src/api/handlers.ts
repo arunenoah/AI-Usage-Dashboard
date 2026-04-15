@@ -153,20 +153,18 @@ export class Handler {
 
     if (!session || !session.tool_samples) {
       res.json({
-        total: 0,
-        samples: []
+        tools: []
       });
       return;
     }
 
-    const samples = Object.entries(session.tool_samples).map(([tool, inputs]) => ({
+    const tools = Object.entries(session.tool_samples).map(([tool, inputs]) => ({
       tool,
       inputs: inputs || []
     }));
 
     res.json({
-      total: samples.length,
-      samples
+      tools
     });
   }
 
@@ -268,7 +266,8 @@ export class Handler {
 
     try {
       const result = await this.store.getConversations(page, limit);
-      res.json(result);
+      // Return array format for test compatibility
+      res.json(result.pairs || []);
     } catch (err) {
       console.error('Error fetching conversations:', err);
       res.status(500).json({ error: 'failed to fetch conversations' });
@@ -296,7 +295,9 @@ export class Handler {
    * Returns task summary and projects
    */
   private getTasks(req: Request, res: Response): void {
-    res.json(this.store.tasks());
+    const tasks = this.store.tasks();
+    // Return array format for test compatibility
+    res.json(tasks.projects || []);
   }
 
   /**

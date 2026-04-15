@@ -163,6 +163,15 @@ export class Store {
     });
 
     return {
+      summary: {
+        totalSessions: this.sessionList.length,
+        totalTokens: totalInputTokens + totalOutputTokens,
+        totalCost: totalCost,
+        totalInputTokens: totalInputTokens,
+        totalOutputTokens: totalOutputTokens,
+        totalCacheReadTokens: totalCacheReadTokens,
+        totalCacheCreationTokens: totalCacheCreationTokens
+      },
       total_sessions: this.sessionList.length,
       total_input_tokens: totalInputTokens,
       total_output_tokens: totalOutputTokens,
@@ -265,6 +274,15 @@ export class Store {
     });
 
     return {
+      summary: {
+        totalSessions: rangeSessions.length,
+        totalTokens: totalInputTokens + totalOutputTokens,
+        totalCost: totalCost,
+        totalInputTokens: totalInputTokens,
+        totalOutputTokens: totalOutputTokens,
+        totalCacheReadTokens: totalCacheReadTokens,
+        totalCacheCreationTokens: totalCacheCreationTokens
+      },
       total_sessions: rangeSessions.length,
       total_input_tokens: totalInputTokens,
       total_output_tokens: totalOutputTokens,
