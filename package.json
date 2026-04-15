@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "description": "AI usage analytics dashboard with flexible backend support (Go, NodeJS, etc.)",
   "private": true,
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "start": "node scripts/start.js",
+    "build:web": "cd web && npm run build",
+    "test:web": "cd web && npm test",
+    "test:backend": "cd backends/nodejs && npm test"
+  },
   "devDependencies": {
     "json-schema-to-typescript": "^13.1.2"
   }
