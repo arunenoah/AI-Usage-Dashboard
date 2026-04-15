@@ -323,6 +323,7 @@ export class ClaudeCodeAdapter implements IAdapter {
    */
   private processEntries(entries: ParsedEntry[], session: Session, firstUserRef: boolean): ConversationPair[] {
     let firstUser = firstUserRef;
+    let lastGitBranch = '';
     const ctx: ConversationContext = {
       lastUserIndex: -1,
       conversationPairs: [],
@@ -340,6 +341,14 @@ export class ClaudeCodeAdapter implements IAdapter {
         }
         if (!session.end_time || ts > new Date(session.end_time)) {
           session.end_time = entry.timestamp;
+        }
+      }
+
+      // Track git branch
+      if (entry.gitBranch) {
+        lastGitBranch = entry.gitBranch;
+        if (!session.git_branch) {
+          session.git_branch = entry.gitBranch;
         }
       }
 

@@ -315,20 +315,26 @@ class Store {
                             }
                             j++;
                         }
+                        // Calculate prompt score and tips
+                        const userText = turns[i].text;
+                        const assistText = assistTurn?.text || '';
+                        const promptScore = this.calculatePromptScore(userText, allToolCalls.length > 0);
+                        const promptTips = this.generatePromptTips(userText, assistText, allToolCalls.length > 0);
                         // Build pair
                         const pair = {
                             session_id: session.id,
                             project_dir: session.project_dir,
                             git_branch: session.git_branch,
                             model: session.model,
-                            user_text: turns[i].text.substring(0, 1000),
-                            assist_text: assistTurn?.text?.substring(0, 1000) || '',
+                            user_text: userText.substring(0, 1000),
+                            assist_text: assistText.substring(0, 1000),
                             tool_calls: allToolCalls,
                             tool_details: allToolDetails.length > 0 ? allToolDetails : undefined,
                             timestamp: turns[i].timestamp,
                             duration_ms: maxDurationMs,
                             cost: 0,
-                            prompt_score: 7
+                            prompt_score: promptScore,
+                            prompt_tips: promptTips
                         };
                         // Calculate cost, usage, and context%
                         if (sumInput + sumOutput > 0) {
@@ -359,6 +365,45 @@ class Store {
         }
         // Sort by timestamp descending (most recent first)
         this.conversationPairs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }
+    /**
+     * Calculate a prompt quality score (1-10)
+     */
+    calculatePromptScore(userText, usedTools) {
+        let score = 7; // Base score
+        // Length check
+        if (userText.length < 10) {
+            score -= 2;
+        }
+        else if (userText.length > 5000) {
+            score -= 1;
+        }
+        else if (userText.length > 500) {
+            score += 1;
+        }
+        // Specificity - look for specific terms
+        const specificKeywords = ['specific', 'exact', 'particular', 'example', 'test', 'code', 'file'];
+        if (specificKeywords.some(kw => userText.toLowerCase().includes(kw))) {
+            score += 1;
+        }
+        // Tool usage indicates well-structured prompt
+        if (usedTools) {
+            score += 1;
+        }
+        return Math.max(1, Math.min(10, Math.round(score)));
+    }
+    /**
+     * Generate prompt tips for improvement
+     */
+    generatePromptTips(userText, assistText, usedTools) {
+        const tips = [];
+        if (userText.length < 20) {
+            tips.push('Try providing more context and details in your prompts');
+        }
+        if (!usedTools && assistText.length > 0) {
+            tips.push('Consider asking the AI to use tools for more actionable results');
+        }
+        return tips.length > 0 ? tips : ['Great prompt! Keep being specific and detailed.'];
     }
     /**
      * Calculate insights and recommendations
