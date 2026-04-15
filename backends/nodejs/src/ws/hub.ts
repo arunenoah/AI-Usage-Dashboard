@@ -4,14 +4,20 @@ import { Duplex } from 'stream';
 
 export class WebSocketHub {
   private clients: Set<WebSocket> = new Set();
+  private wss: WebSocketServer;
+
+  constructor() {
+    // Create WebSocketServer once, reuse for all connections
+    this.wss = new WebSocketServer({ noServer: true });
+  }
 
   handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
-    const wss = new WebSocketServer({ noServer: true });
-
-    wss.handleUpgrade(request, socket, head, (ws: WebSocket) => {
+    this.wss.handleUpgrade(request, socket, head, (ws: WebSocket) => {
       this.addClient(ws);
       ws.on('close', () => this.removeClient(ws));
       ws.on('error', (err: Error) => console.error('WebSocket error:', err));
+      // Send initial connection message
+      ws.send(JSON.stringify({ type: 'connected', message: 'Connected to server' }));
     });
   }
 
