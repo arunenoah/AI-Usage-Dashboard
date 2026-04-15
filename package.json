@@ -1,0 +1,9 @@
+{
+  "name": "ai-usage-dashboard",
+  "version": "1.0.0",
+  "description": "AI usage analytics dashboard with flexible backend support (Go, NodeJS, etc.)",
+  "private": true,
+  "devDependencies": {
+    "json-schema-to-typescript": "^13.1.2"
+  }
+}
