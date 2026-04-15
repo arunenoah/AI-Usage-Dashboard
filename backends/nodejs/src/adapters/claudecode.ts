@@ -1,4 +1,4 @@
-import { Session } from '../types/models';
+import { Session, ConversationPair, ToolDetail } from '../types/models';
 import { IAdapter } from './adapter';
 import path from 'path';
 import fs from 'fs/promises';
@@ -6,12 +6,200 @@ import os from 'os';
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
 
+interface ParsedEntry {
+  type: 'user' | 'assistant' | string;
+  message?: {
+    role?: string;
+    content?: Array<{ type: string; [key: string]: any }>;
+    model?: string;
+    usage?: {
+      input_tokens?: number;
+      output_tokens?: number;
+      cache_read_input_tokens?: number;
+      cache_creation_input_tokens?: number;
+    };
+    text?: string;
+  };
+  timestamp?: string;
+  cwd?: string;
+  gitBranch?: string;
+  toolUseResult?: string;
+  tool_use_id?: string;
+}
+
+interface ConversationContext {
+  lastUserEntry?: ParsedEntry;
+  lastUserIndex: number;
+  conversationPairs: ConversationPair[];
+  tools: Map<string, string[]>; // tool name -> array of sample inputs
+}
+
+interface TurnEntry {
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  model?: string;
+  toolCalls: string[];
+  toolDetails: ToolDetail[];
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
+    cacheReadInputTokens?: number;
+    cacheCreationInputTokens?: number;
+  };
+  durationMs?: number;
+}
+
 /**
  * Adapter for Claude Code sessions
  *
  * Loads sessions from Claude Code's project directory at ~/.claude/projects
+ * Parses detailed JSONL data to extract tool usage, token metrics, and activity
  */
 export class ClaudeCodeAdapter implements IAdapter {
+  /**
+   * Parse full turns from a JSONL file (for conversation extraction)
+   */
+  async parseTurnsFull(filePath: string): Promise<TurnEntry[]> {
+    return new Promise((resolve) => {
+      const turns: TurnEntry[] = [];
+      const seenUUIDs = new Set<string>();
+
+      const lineReader = createInterface({
+        input: createReadStream(filePath),
+        crlfDelay: Infinity
+      });
+
+      lineReader.on('line', (line) => {
+        try {
+          const entry: ParsedEntry = JSON.parse(line);
+
+          // Skip duplicates
+          if (entry.type && entry.type !== 'user' && entry.type !== 'assistant') {
+            return;
+          }
+
+          if (entry.type === 'user') {
+            let text = '';
+            if (entry.message?.content) {
+              if (typeof entry.message.content === 'string') {
+                text = entry.message.content;
+              } else if (Array.isArray(entry.message.content)) {
+                const textBlock = (entry.message.content as any[]).find((c: any) => c.type === 'text');
+                text = (textBlock as any)?.text || '';
+              }
+            }
+
+            // Skip tool_result-only turns
+            if (text && !text.startsWith('[Request interrupted')) {
+              turns.push({
+                role: 'user',
+                text: text.substring(0, 10000), // Limit to 10k chars
+                timestamp: entry.timestamp || new Date().toISOString(),
+                toolCalls: [],
+                toolDetails: []
+              });
+            }
+          } else if (entry.type === 'assistant') {
+            let text = '';
+            let toolCalls: string[] = [];
+            let toolDetails: ToolDetail[] = [];
+            const usage = entry.message?.usage;
+
+            if (entry.message?.content) {
+              if (typeof entry.message.content === 'string') {
+                text = entry.message.content;
+              } else if (Array.isArray(entry.message.content)) {
+                const contentBlocks = entry.message.content as any[];
+
+                // Extract text
+                const textBlock = contentBlocks.find((c: any) => c.type === 'text');
+                if (textBlock) {
+                  text = textBlock.text || '';
+                }
+
+                // Extract thinking
+                if (!text) {
+                  const thinkingBlock = contentBlocks.find((c: any) => c.type === 'thinking');
+                  if (thinkingBlock) {
+                    text = '[thinking] ' + (thinkingBlock.thinking || '').substring(0, 200);
+                  }
+                }
+
+                // Extract tool calls
+                for (const block of contentBlocks) {
+                  if (block.type === 'tool_use' && block.name) {
+                    toolCalls.push(block.name);
+                    const detail: ToolDetail = { tool: block.name };
+
+                    // Extract input based on tool type
+                    if (block.input && typeof block.input === 'object') {
+                      const input = block.input as any;
+                      switch (block.name) {
+                        case 'Write':
+                        case 'Read':
+                        case 'Edit':
+                        case 'NotebookEdit':
+                          detail.input = input.file_path || '';
+                          break;
+                        case 'Bash':
+                          detail.input = (input.command || '').substring(0, 120);
+                          break;
+                        case 'Agent':
+                          detail.input = input.description || input.prompt || '';
+                          break;
+                        case 'Grep':
+                          const pattern = input.pattern || '';
+                          const path = input.path || '';
+                          detail.input = path ? `${pattern} in ${path}` : pattern;
+                          break;
+                        case 'Glob':
+                          detail.input = input.pattern || '';
+                          break;
+                        case 'WebFetch':
+                        case 'WebSearch':
+                          detail.input = input.url || input.query || '';
+                          break;
+                        default:
+                          detail.input = JSON.stringify(input).substring(0, 100);
+                      }
+                    }
+                    toolDetails.push(detail);
+                  }
+                }
+              }
+            }
+
+            turns.push({
+              role: 'assistant',
+              text: text.substring(0, 10000),
+              timestamp: entry.timestamp || new Date().toISOString(),
+              model: entry.message?.model,
+              toolCalls,
+              toolDetails,
+              usage: usage ? {
+                inputTokens: usage.input_tokens || 0,
+                outputTokens: usage.output_tokens || 0,
+                cacheReadInputTokens: usage.cache_read_input_tokens,
+                cacheCreationInputTokens: usage.cache_creation_input_tokens
+              } : undefined
+            });
+          }
+        } catch (err) {
+          // Skip malformed lines
+        }
+      });
+
+      lineReader.on('close', () => {
+        resolve(turns);
+      });
+
+      lineReader.on('error', () => {
+        resolve([]);
+      });
+    });
+  }
+
   /**
    * Retrieves sessions from Claude Code's session storage
    * @returns Promise resolving to array of Session objects
@@ -75,7 +263,7 @@ export class ClaudeCodeAdapter implements IAdapter {
   }
 
   /**
-   * Parse a JSONL session file
+   * Parse a JSONL session file with advanced data extraction
    */
   private async parseSessionFile(filePath: string): Promise<Session | null> {
     return new Promise((resolve) => {
@@ -83,7 +271,7 @@ export class ClaudeCodeAdapter implements IAdapter {
         id: path.basename(filePath, '.jsonl'),
         source: 'claude-code',
         project_dir: this.decodeProjectDir(path.dirname(filePath)),
-        model: 'claude-3.5-sonnet',
+        model: 'claude-3-5-sonnet-20241022',
         start_time: new Date().toISOString(),
         end_time: new Date().toISOString(),
         user_turns: 0,
@@ -95,9 +283,11 @@ export class ClaudeCodeAdapter implements IAdapter {
           cache_creation_input_tokens: 0
         },
         tool_counts: {},
-        first_prompt: ''
+        first_prompt: '',
+        file_path: filePath
       };
 
+      const entries: ParsedEntry[] = [];
       let firstUser = true;
       const lineReader = createInterface({
         input: createReadStream(filePath),
@@ -106,50 +296,18 @@ export class ClaudeCodeAdapter implements IAdapter {
 
       lineReader.on('line', (line) => {
         try {
-          const entry = JSON.parse(line);
-
-          if (entry.timestamp) {
-            const ts = new Date(entry.timestamp);
-            if (new Date(session.start_time).getTime() === new Date().getTime() || ts < new Date(session.start_time)) {
-              session.start_time = entry.timestamp;
-            }
-            if (ts > new Date(session.end_time)) {
-              session.end_time = entry.timestamp;
-            }
-          }
-
-          if (entry.type === 'user') {
-            session.user_turns++;
-            if (firstUser && entry.message?.text) {
-              session.first_prompt = entry.message.text.substring(0, 120);
-              firstUser = false;
-            }
-          } else if (entry.type === 'assistant') {
-            session.assist_turns++;
-            if (entry.message?.model) {
-              session.model = entry.message.model;
-            }
-            if (entry.message?.usage) {
-              const usage = entry.message.usage;
-              session.total_usage.input_tokens += usage.input_tokens || 0;
-              session.total_usage.output_tokens += usage.output_tokens || 0;
-            }
-          }
-
-          // Count tool usage
-          if (entry.message?.tool_uses) {
-            for (const tool of entry.message.tool_uses) {
-              if (tool.name && session.tool_counts) {
-                session.tool_counts[tool.name] = (session.tool_counts[tool.name] || 0) + 1;
-              }
-            }
-          }
+          const entry: ParsedEntry = JSON.parse(line);
+          entries.push(entry);
         } catch (err) {
           // Skip malformed lines
         }
       });
 
       lineReader.on('close', () => {
+        // Post-process entries to extract detailed metrics
+        const conversationPairs = this.processEntries(entries, session, firstUser);
+        // Store conversation pairs on the session object for later retrieval
+        (session as any)._conversation_pairs = conversationPairs;
         resolve(session);
       });
 
@@ -158,6 +316,258 @@ export class ClaudeCodeAdapter implements IAdapter {
         resolve(null);
       });
     });
+  }
+
+  /**
+   * Process parsed entries to extract metrics and build conversation data
+   */
+  private processEntries(entries: ParsedEntry[], session: Session, firstUserRef: boolean): ConversationPair[] {
+    let firstUser = firstUserRef;
+    const ctx: ConversationContext = {
+      lastUserIndex: -1,
+      conversationPairs: [],
+      tools: new Map()
+    };
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+
+      // Update time range
+      if (entry.timestamp) {
+        const ts = new Date(entry.timestamp);
+        if (!session.start_time || ts < new Date(session.start_time)) {
+          session.start_time = entry.timestamp;
+        }
+        if (!session.end_time || ts > new Date(session.end_time)) {
+          session.end_time = entry.timestamp;
+        }
+      }
+
+      if (entry.type === 'user') {
+        session.user_turns++;
+        ctx.lastUserEntry = entry;
+        ctx.lastUserIndex = i;
+
+        // Extract first user prompt
+        if (firstUser && entry.message?.content) {
+          let textContent: any = null;
+          if (typeof entry.message.content === 'string') {
+            session.first_prompt = (entry.message.content as string).substring(0, 120);
+            firstUser = false;
+          } else if (Array.isArray(entry.message.content)) {
+            textContent = (entry.message.content as any[]).find((c: any) => c.type === 'text');
+            if (textContent?.text) {
+              session.first_prompt = textContent.text.substring(0, 120);
+              firstUser = false;
+            }
+          }
+        }
+      } else if (entry.type === 'assistant') {
+        session.assist_turns++;
+
+        // Update model if available
+        if (entry.message?.model) {
+          session.model = entry.message.model;
+        }
+
+        // Extract token usage
+        if (entry.message?.usage) {
+          const usage = entry.message.usage;
+          session.total_usage.input_tokens += usage.input_tokens || 0;
+          session.total_usage.output_tokens += usage.output_tokens || 0;
+          if (usage.cache_read_input_tokens) {
+            session.total_usage.cache_read_input_tokens = (session.total_usage.cache_read_input_tokens || 0) + usage.cache_read_input_tokens;
+          }
+          if (usage.cache_creation_input_tokens) {
+            session.total_usage.cache_creation_input_tokens = (session.total_usage.cache_creation_input_tokens || 0) + usage.cache_creation_input_tokens;
+          }
+        }
+
+        // Extract tool usage and build conversation pair if we have a prior user message
+        const toolDetails: ToolDetail[] = [];
+        if (entry.message?.content && Array.isArray(entry.message.content)) {
+          for (const block of entry.message.content) {
+            if (block.type === 'tool_use') {
+              const toolName = block.name || block.tool;
+              if (toolName) {
+                if (!session.tool_counts) session.tool_counts = {};
+                session.tool_counts[toolName] = (session.tool_counts[toolName] || 0) + 1;
+
+                // Collect tool sample
+                if (block.input && typeof block.input === 'object') {
+                  const inputStr = JSON.stringify(block.input).substring(0, 100);
+                  if (!ctx.tools.has(toolName)) {
+                    ctx.tools.set(toolName, []);
+                  }
+                  const samples = ctx.tools.get(toolName)!;
+                  if (samples.length < 5 && !samples.includes(inputStr)) {
+                    samples.push(inputStr);
+                  }
+                }
+
+                // Build tool detail
+                toolDetails.push({
+                  tool: toolName,
+                  input: block.input ? JSON.stringify(block.input).substring(0, 100) : undefined
+                });
+              }
+            }
+          }
+        }
+
+        // Match user-assistant pair if we have a prior user message
+        if (ctx.lastUserEntry) {
+          const pair = this.buildConversationPair(
+            session,
+            ctx.lastUserEntry,
+            entry,
+            toolDetails,
+            entry.timestamp
+          );
+          ctx.conversationPairs.push(pair);
+        }
+      }
+    }
+
+    // Store tool samples in session
+    if (ctx.tools.size > 0) {
+      session.tool_samples = {};
+      for (const [toolName, samples] of ctx.tools) {
+        session.tool_samples[toolName] = samples;
+      }
+    }
+
+    return ctx.conversationPairs;
+  }
+
+  /**
+   * Build a conversation pair from user and assistant entries
+   */
+  private buildConversationPair(
+    session: Session,
+    userEntry: ParsedEntry,
+    assistantEntry: ParsedEntry,
+    toolDetails: ToolDetail[],
+    timestamp?: string
+  ): ConversationPair {
+    // Extract user text
+    let userText = '';
+    if (userEntry.message?.content) {
+      if (typeof userEntry.message.content === 'string') {
+        userText = userEntry.message.content;
+      } else if (Array.isArray(userEntry.message.content)) {
+        const textBlock = (userEntry.message.content as any[]).find((c: any) => c.type === 'text');
+        userText = (textBlock as any)?.text || '';
+      }
+    }
+
+    // Extract assistant text
+    let assistText = '';
+    if (assistantEntry.message?.content) {
+      if (typeof assistantEntry.message.content === 'string') {
+        assistText = assistantEntry.message.content;
+      } else if (Array.isArray(assistantEntry.message.content)) {
+        const textBlock = (assistantEntry.message.content as any[]).find((c: any) => c.type === 'text');
+        assistText = (textBlock as any)?.text || '';
+      }
+    }
+
+    // Calculate cost based on tokens
+    let cost = 0;
+    if (assistantEntry.message?.usage) {
+      const usage = assistantEntry.message.usage;
+      const inputCost = ((usage.input_tokens || 0) / 1000000) * 0.003;
+      const outputCost = ((usage.output_tokens || 0) / 1000000) * 0.015;
+      cost = inputCost + outputCost;
+    }
+
+    // Calculate prompt score (1-10 scale based on various factors)
+    const promptScore = this.calculatePromptScore(userText, toolDetails.length > 0);
+
+    // Build the pair
+    const pair: ConversationPair = {
+      session_id: session.id,
+      project_dir: session.project_dir,
+      git_branch: session.git_branch,
+      model: session.model,
+      user_text: userText.substring(0, 1000),
+      assist_text: assistText.substring(0, 1000),
+      tool_calls: toolDetails.map(t => t.tool),
+      tool_details: toolDetails.length > 0 ? toolDetails : undefined,
+      usage: assistantEntry.message?.usage ? {
+        input_tokens: assistantEntry.message.usage.input_tokens || 0,
+        output_tokens: assistantEntry.message.usage.output_tokens || 0,
+        cache_read_input_tokens: assistantEntry.message.usage.cache_read_input_tokens,
+        cache_creation_input_tokens: assistantEntry.message.usage.cache_creation_input_tokens
+      } : undefined,
+      timestamp: timestamp || assistantEntry.timestamp || new Date().toISOString(),
+      duration_ms: undefined,
+      context_pct: undefined,
+      cost,
+      prompt_score: promptScore,
+      prompt_tips: this.generatePromptTips(userText, assistText, toolDetails.length > 0)
+    };
+
+    return pair;
+  }
+
+  /**
+   * Calculate a prompt quality score (1-10)
+   */
+  private calculatePromptScore(userText: string, usedTools: boolean): number {
+    let score = 7; // Base score
+
+    // Length check - too short or too long is bad
+    if (userText.length < 10) {
+      score -= 2;
+    } else if (userText.length > 5000) {
+      score -= 1;
+    } else if (userText.length > 500) {
+      score += 1; // Detailed prompts tend to be better
+    }
+
+    // Specificity - look for specific terms
+    const specificKeywords = ['specific', 'exact', 'particular', 'example', 'test', 'code', 'file'];
+    if (specificKeywords.some(kw => userText.toLowerCase().includes(kw))) {
+      score += 1;
+    }
+
+    // Tool usage indicates well-structured prompt
+    if (usedTools) {
+      score += 1;
+    }
+
+    // Check for domain knowledge indicators
+    if (/\b(function|class|async|import|export|const|let|var)\b/i.test(userText)) {
+      score += 1;
+    }
+
+    return Math.max(1, Math.min(10, Math.round(score)));
+  }
+
+  /**
+   * Generate helpful tips for improving prompts
+   */
+  private generatePromptTips(userText: string, assistText: string, usedTools: boolean): string[] {
+    const tips: string[] = [];
+
+    if (userText.length < 20) {
+      tips.push('Try providing more context and details in your prompts');
+    }
+
+    if (!usedTools && assistText.length > 0) {
+      tips.push('Consider asking the AI to use tools for more actionable results');
+    }
+
+    if (/\?$/.test(userText)) {
+      tips.push('Phrase prompts as specific requests rather than questions');
+    }
+
+    if (userText.toLowerCase().includes('todo') || userText.toLowerCase().includes('please')) {
+      tips.push('Be direct and explicit about what you want');
+    }
+
+    return tips.length > 0 ? tips : ['Great prompt! Keep being specific and detailed.'];
   }
 
   /**

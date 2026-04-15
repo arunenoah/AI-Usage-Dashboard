@@ -1,10 +1,26 @@
-import { Session } from '../types/models';
+import { Session, ConversationPair, ToolDetail } from '../types/models';
 import { IAdapter } from './adapter';
 import path from 'path';
 import os from 'os';
 import fs from 'fs/promises';
 import { createReadStream } from 'fs';
 import { createInterface } from 'readline';
+
+interface ParsedEntry {
+  type: 'user' | 'assistant' | string;
+  message?: {
+    role?: string;
+    content?: Array<{ type: string; [key: string]: any }>;
+    text?: string;
+    usage?: {
+      input_tokens?: number;
+      output_tokens?: number;
+      cache_read_input_tokens?: number;
+      cache_creation_input_tokens?: number;
+    };
+  };
+  timestamp?: string;
+}
 
 /**
  * Adapter for GitHub Copilot sessions
@@ -109,6 +125,7 @@ export class CopilotAdapter implements IAdapter {
         first_prompt: ''
       };
 
+      const entries: ParsedEntry[] = [];
       let firstUser = true;
       const lineReader = createInterface({
         input: createReadStream(filePath),
@@ -118,37 +135,16 @@ export class CopilotAdapter implements IAdapter {
       lineReader.on('line', (line) => {
         try {
           const entry = JSON.parse(line);
-
-          if (entry.timestamp) {
-            const ts = new Date(entry.timestamp);
-            if (session.start_time === new Date().toISOString() || ts < new Date(session.start_time)) {
-              session.start_time = entry.timestamp;
-            }
-            if (ts > new Date(session.end_time)) {
-              session.end_time = entry.timestamp;
-            }
-          }
-
-          if (entry.type === 'user') {
-            session.user_turns++;
-            if (firstUser && entry.message?.text) {
-              session.first_prompt = entry.message.text.substring(0, 120);
-              firstUser = false;
-            }
-          } else if (entry.type === 'assistant') {
-            session.assist_turns++;
-            if (entry.message?.usage) {
-              const usage = entry.message.usage;
-              session.total_usage.input_tokens += usage.input_tokens || 0;
-              session.total_usage.output_tokens += usage.output_tokens || 0;
-            }
-          }
+          entries.push(entry);
         } catch (err) {
           // Skip malformed lines
         }
       });
 
       lineReader.on('close', () => {
+        // Process entries to extract metrics
+        const conversationPairs = this.processEntries(entries, session, firstUser);
+        (session as any)._conversation_pairs = conversationPairs;
         resolve(session);
       });
 
@@ -156,6 +152,196 @@ export class CopilotAdapter implements IAdapter {
         resolve(null);
       });
     });
+  }
+
+  /**
+   * Process entries to extract conversation pairs and metrics
+   */
+  private processEntries(entries: ParsedEntry[], session: Session, firstUserRef: boolean): ConversationPair[] {
+    let firstUser = firstUserRef;
+    let lastUserEntry: ParsedEntry | undefined;
+    const conversationPairs: ConversationPair[] = [];
+    const tools = new Map<string, string[]>();
+
+    for (const entry of entries) {
+      if (entry.timestamp) {
+        const ts = new Date(entry.timestamp);
+        if (session.start_time === new Date().toISOString() || ts < new Date(session.start_time)) {
+          session.start_time = entry.timestamp;
+        }
+        if (ts > new Date(session.end_time)) {
+          session.end_time = entry.timestamp;
+        }
+      }
+
+      if (entry.type === 'user') {
+        session.user_turns++;
+        lastUserEntry = entry;
+
+        if (firstUser) {
+          if (entry.message?.text) {
+            session.first_prompt = entry.message.text.substring(0, 120);
+            firstUser = false;
+          } else if (typeof entry.message?.content === 'string') {
+            session.first_prompt = (entry.message.content as string).substring(0, 120);
+            firstUser = false;
+          }
+        }
+      } else if (entry.type === 'assistant') {
+        session.assist_turns++;
+
+        if (entry.message?.usage) {
+          const usage = entry.message.usage;
+          session.total_usage.input_tokens += usage.input_tokens || 0;
+          session.total_usage.output_tokens += usage.output_tokens || 0;
+          if (usage.cache_read_input_tokens) {
+            session.total_usage.cache_read_input_tokens = (session.total_usage.cache_read_input_tokens || 0) + usage.cache_read_input_tokens;
+          }
+          if (usage.cache_creation_input_tokens) {
+            session.total_usage.cache_creation_input_tokens = (session.total_usage.cache_creation_input_tokens || 0) + usage.cache_creation_input_tokens;
+          }
+        }
+
+        // Build conversation pair
+        if (lastUserEntry) {
+          const toolDetails: ToolDetail[] = [];
+          if (entry.message?.content && Array.isArray(entry.message.content)) {
+            for (const block of entry.message.content) {
+              if (block.type === 'tool_use' && block.name) {
+                if (!session.tool_counts) session.tool_counts = {};
+                session.tool_counts[block.name] = (session.tool_counts[block.name] || 0) + 1;
+                toolDetails.push({
+                  tool: block.name,
+                  input: block.input ? JSON.stringify(block.input).substring(0, 100) : undefined
+                });
+              }
+            }
+          }
+
+          const pair = this.buildConversationPair(
+            session,
+            lastUserEntry,
+            entry,
+            toolDetails,
+            entry.timestamp
+          );
+          conversationPairs.push(pair);
+        }
+      }
+    }
+
+    // Store tool samples
+    if (tools.size > 0) {
+      session.tool_samples = {};
+      for (const [toolName, samples] of tools) {
+        session.tool_samples[toolName] = samples;
+      }
+    }
+
+    return conversationPairs;
+  }
+
+  /**
+   * Build a conversation pair from user and assistant entries
+   */
+  private buildConversationPair(
+    session: Session,
+    userEntry: ParsedEntry,
+    assistantEntry: ParsedEntry,
+    toolDetails: ToolDetail[],
+    timestamp?: string
+  ): ConversationPair {
+    let userText = '';
+    if (userEntry.message?.text) {
+      userText = userEntry.message.text;
+    } else if (typeof userEntry.message?.content === 'string') {
+      userText = userEntry.message.content;
+    } else if (Array.isArray(userEntry.message?.content)) {
+      const textBlock = (userEntry.message.content as any[]).find((c: any) => c.type === 'text');
+      userText = (textBlock as any)?.text || '';
+    }
+
+    let assistText = '';
+    if (assistantEntry.message?.text) {
+      assistText = assistantEntry.message.text;
+    } else if (typeof assistantEntry.message?.content === 'string') {
+      assistText = assistantEntry.message.content;
+    } else if (Array.isArray(assistantEntry.message?.content)) {
+      const textBlock = (assistantEntry.message.content as any[]).find((c: any) => c.type === 'text');
+      assistText = (textBlock as any)?.text || '';
+    }
+
+    let cost = 0;
+    if (assistantEntry.message?.usage) {
+      const usage = assistantEntry.message.usage;
+      const inputCost = ((usage.input_tokens || 0) / 1000000) * 0.003;
+      const outputCost = ((usage.output_tokens || 0) / 1000000) * 0.015;
+      cost = inputCost + outputCost;
+    }
+
+    const promptScore = this.calculatePromptScore(userText, toolDetails.length > 0);
+
+    return {
+      session_id: session.id,
+      project_dir: session.project_dir,
+      model: session.model,
+      user_text: userText.substring(0, 1000),
+      assist_text: assistText.substring(0, 1000),
+      tool_calls: toolDetails.map(t => t.tool),
+      tool_details: toolDetails.length > 0 ? toolDetails : undefined,
+      usage: assistantEntry.message?.usage ? {
+        input_tokens: assistantEntry.message.usage.input_tokens || 0,
+        output_tokens: assistantEntry.message.usage.output_tokens || 0,
+        cache_read_input_tokens: assistantEntry.message.usage.cache_read_input_tokens,
+        cache_creation_input_tokens: assistantEntry.message.usage.cache_creation_input_tokens
+      } : undefined,
+      timestamp: timestamp || assistantEntry.timestamp || new Date().toISOString(),
+      cost,
+      prompt_score: promptScore,
+      prompt_tips: this.generatePromptTips(userText, assistText, toolDetails.length > 0)
+    };
+  }
+
+  /**
+   * Calculate prompt score
+   */
+  private calculatePromptScore(userText: string, usedTools: boolean): number {
+    let score = 7;
+
+    if (userText.length < 10) {
+      score -= 2;
+    } else if (userText.length > 5000) {
+      score -= 1;
+    } else if (userText.length > 500) {
+      score += 1;
+    }
+
+    if (/\b(specific|exact|particular|example|test|code|file)\b/i.test(userText)) {
+      score += 1;
+    }
+
+    if (usedTools) {
+      score += 1;
+    }
+
+    return Math.max(1, Math.min(10, Math.round(score)));
+  }
+
+  /**
+   * Generate prompt tips
+   */
+  private generatePromptTips(userText: string, assistText: string, usedTools: boolean): string[] {
+    const tips: string[] = [];
+
+    if (userText.length < 20) {
+      tips.push('Try providing more context and details in your prompts');
+    }
+
+    if (!usedTools && assistText.length > 0) {
+      tips.push('Consider asking the AI to use tools for more actionable results');
+    }
+
+    return tips.length > 0 ? tips : ['Great prompt! Keep being specific and detailed.'];
   }
 
   /**

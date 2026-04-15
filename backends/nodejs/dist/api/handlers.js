@@ -121,9 +121,23 @@ class Handler {
      * Returns samples of tool usage
      */
     getToolSamples(req, res) {
+        const sessionId = req.params.sessionId;
+        const sessions = this.store.sessions();
+        const session = sessions.find(s => s.id === sessionId);
+        if (!session || !session.tool_samples) {
+            res.json({
+                total: 0,
+                samples: []
+            });
+            return;
+        }
+        const samples = Object.entries(session.tool_samples).map(([tool, inputs]) => ({
+            tool,
+            inputs: inputs || []
+        }));
         res.json({
-            total: 0,
-            samples: []
+            total: samples.length,
+            samples
         });
     }
     /**
@@ -144,20 +158,28 @@ class Handler {
      * Get recent conversations
      * Returns paginated list of recent user-assistant conversations
      */
-    getConversations(req, res) {
-        res.json({
-            pairs: [],
-            total: 0,
-            total_pages: 1,
-            page: 1
-        });
+    async getConversations(req, res) {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        if (limit < 1 || limit > 100) {
+            res.status(400).json({ error: 'limit must be between 1 and 100' });
+            return;
+        }
+        try {
+            const result = await this.store.getConversations(page, limit);
+            res.json(result);
+        }
+        catch (err) {
+            console.error('Error fetching conversations:', err);
+            res.status(500).json({ error: 'failed to fetch conversations' });
+        }
     }
     /**
      * Get insights and recommendations
      * Returns analysis of usage patterns and suggestions
      */
     getInsights(req, res) {
-        res.json({});
+        res.json(this.store.insights());
     }
     /**
      * Serve image endpoint
