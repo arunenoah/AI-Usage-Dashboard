@@ -25,11 +25,12 @@ describe('API Handlers', () => {
   });
 
   describe('GET /api/stats', () => {
-    test('should return stats with daily and summary', async () => {
+    test('should return stats with daily and top-level token fields', async () => {
       const res = await request(app).get('/api/stats?days=7');
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('daily');
-      expect(res.body).toHaveProperty('summary');
+      expect(res.body).toHaveProperty('total_sessions');
+      expect(res.body).toHaveProperty('total_cost_usd');
       expect(Array.isArray(res.body.daily)).toBe(true);
     });
 
@@ -37,7 +38,7 @@ describe('API Handlers', () => {
       const res = await request(app).get('/api/stats?from=2024-01-01&to=2024-01-31');
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('daily');
-      expect(res.body).toHaveProperty('summary');
+      expect(res.body).toHaveProperty('total_sessions');
     });
 
     test('should default to 7 days if days parameter not provided', async () => {
@@ -153,10 +154,13 @@ describe('API Handlers', () => {
   });
 
   describe('GET /api/conversations', () => {
-    test('should return conversations array', async () => {
+    test('should return paginated conversations object', async () => {
       const res = await request(app).get('/api/conversations');
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveProperty('pairs');
+      expect(res.body).toHaveProperty('total');
+      expect(res.body).toHaveProperty('total_pages');
+      expect(Array.isArray(res.body.pairs)).toBe(true);
     });
   });
 
@@ -176,10 +180,12 @@ describe('API Handlers', () => {
   });
 
   describe('GET /api/tasks', () => {
-    test('should return tasks array', async () => {
+    test('should return tasks object with summary and projects', async () => {
       const res = await request(app).get('/api/tasks');
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveProperty('summary');
+      expect(res.body).toHaveProperty('projects');
+      expect(Array.isArray(res.body.projects)).toBe(true);
     });
   });
 

@@ -37,6 +37,12 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/image", h.serveImage)
 	mux.HandleFunc("/api/health", h.health)
 	mux.HandleFunc("/api/tasks", h.getTasks)
+	// Analytics breakdowns
+	mux.HandleFunc("/api/stats/by-project", h.getStatsByProject)
+	mux.HandleFunc("/api/stats/by-model", h.getStatsByModel)
+	mux.HandleFunc("/api/stats/by-activity", h.getStatsByActivity)
+	mux.HandleFunc("/api/shell-commands", h.getShellCommands)
+	mux.HandleFunc("/api/mcp-servers", h.getMCPServers)
 	// GitHub Copilot
 	mux.HandleFunc("/api/copilot/stats", h.getCopilotStats)
 	mux.HandleFunc("/api/copilot/sessions", h.getCopilotSessions)
@@ -649,6 +655,10 @@ func isSystemInjection(text string) bool {
 			return true
 		}
 	}
+	// Context compaction continuation injected by Claude Code
+	if strings.HasPrefix(trimmed, "This session is being continued from a previous conversation") {
+		return true
+	}
 	// Very long markdown-formatted messages are usually skill context injections
 	if len(text) > 1500 && (strings.HasPrefix(text, "#") || strings.HasPrefix(text, "You are")) {
 		return true
@@ -664,14 +674,22 @@ func isSystemInjection(text string) bool {
 		"Task tool (superpowers:",
 		"Use this template when",
 		"[INST]",
-		// Claude Code XML-tagged command/tool outputs
-		"<command-message>",
-		"<command-name>",
-		"<local-command-",
-		"<local-command-caveat>",
 	}
 	for _, p := range prefixes {
 		if strings.HasPrefix(trimmed, p) {
+			return true
+		}
+	}
+	// Claude Code XML-tagged local command outputs — may appear with a leading bullet (• ) or directly
+	xmlCommandTags := []string{
+		"<command-message>",
+		"<command-name>",
+		"<local-command-caveat>",
+		"<local-command-stdout>",
+		"<local-command-",
+	}
+	for _, tag := range xmlCommandTags {
+		if strings.Contains(trimmed, tag) {
 			return true
 		}
 	}
@@ -1238,9 +1256,9 @@ func scorePrompt(pair models.ConversationPair) (int, []string) {
 	}
 
 	// ── R: RULES / CONSTRAINTS (0-2 points) ──────────────────────────────────
-	// Does the prompt set boundaries?
+	// Explicit boundaries — exclude "only"/"should" which appear in ordinary English sentences
 	hasConstraints := false
-	for _, kw := range []string{"don't", "do not", "avoid", "must", "should", "only", "without", "ensure", "make sure", "never", "always", "constraint", "requirement", "rule:", "important:"} {
+	for _, kw := range []string{"don't", "do not", "avoid", "must not", "without", "ensure", "make sure", "never", "always", "constraint", "requirement", "rule:", "important:", "must be", "must have"} {
 		if strings.Contains(lower, kw) {
 			hasConstraints = true
 			break
@@ -1252,9 +1270,9 @@ func scorePrompt(pair models.ConversationPair) (int, []string) {
 		tips = append(tips, "[R] Rules: add constraints — what to avoid, boundaries, must-haves (e.g., \"don't change the API\", \"must be backward compatible\").")
 	}
 
-	// Expected behavior or acceptance criteria
+	// Expected behavior or acceptance criteria — exclude "it should" / "the output" (too casual)
 	hasExpected := false
-	for _, kw := range []string{"expect", "should return", "should output", "result should", "the output", "it should", "success criteria", "acceptance"} {
+	for _, kw := range []string{"expect", "should return", "should output", "result should", "success criteria", "acceptance criteria", "expected output", "expected result"} {
 		if strings.Contains(lower, kw) {
 			hasExpected = true
 			break
@@ -1265,9 +1283,9 @@ func scorePrompt(pair models.ConversationPair) (int, []string) {
 	}
 
 	// ── E: EXAMPLES / OUTPUT FORMAT (0-2 points) ─────────────────────────────
-	// Does the prompt specify desired output format or give examples?
+	// Specific format indicators — removed "as a " (already in C), "list"/"output:" (too common), "give me a" (casual)
 	hasFormat := false
-	for _, kw := range []string{"format:", "output:", "example:", "e.g.", "for example", "like this", "such as", "table", "list", "json", "csv", "markdown", "as a ", "return as", "respond with", "give me a"} {
+	for _, kw := range []string{"format:", "example:", "e.g.", "for example", "like this", "such as", "table", "json", "csv", "markdown", "return as", "respond with"} {
 		if strings.Contains(lower, kw) {
 			hasFormat = true
 			break
@@ -1276,12 +1294,33 @@ func scorePrompt(pair models.ConversationPair) (int, []string) {
 	if hasFormat {
 		score += 1
 	} else {
-		tips = append(tips, "[E] Examples: specify the desired output format (list, table, code block) or give an example of what you expect.")
+		tips = append(tips, "[E] Examples: specify the desired output format (table, JSON, markdown) or give an example of what you expect.")
 	}
 
 	// Code examples or before/after patterns
-	if strings.Contains(text, "```") || strings.Contains(text, "before:") || strings.Contains(text, "after:") || strings.Contains(text, "currently:") {
+	hasCodeExample := strings.Contains(text, "```") || strings.Contains(text, "before:") || strings.Contains(text, "after:") || strings.Contains(text, "currently:")
+	if hasCodeExample {
 		score += 1
+	}
+
+	// ── CARE structural cap ───────────────────────────────────────────────────
+	// "Only truly structured prompts score 8+." — enforce by counting present CARE components.
+	// A prompt missing 2+ components cannot score above 7 regardless of length.
+	careCount := 0
+	if hasContext || hasRole {
+		careCount++
+	}
+	if hasAction {
+		careCount++
+	}
+	if hasConstraints || hasExpected {
+		careCount++
+	}
+	if hasFormat || hasCodeExample {
+		careCount++
+	}
+	if careCount < 3 && score > 7 {
+		score = 7
 	}
 
 	// ── Clamp 1-10 ───────────────────────────────────────────────────────────
@@ -1577,6 +1616,303 @@ func (h *Handler) getCopilotSessionDetail(w http.ResponseWriter, r *http.Request
 		"session": sess,
 		"turns":   turns,
 	})
+}
+
+// ── Analytics breakdown handlers ─────────────────────────────────────────────
+
+// filterSessionsByQuery returns sessions filtered by ?days=N or ?from/to= query params.
+func (h *Handler) filterSessionsByQuery(r *http.Request) []*models.Session {
+	fromStr := r.URL.Query().Get("from")
+	toStr := r.URL.Query().Get("to")
+	days, _ := strconv.Atoi(r.URL.Query().Get("days"))
+
+	all := h.Store.Sessions()
+	var cutoff, ceiling time.Time
+	if fromStr != "" || toStr != "" {
+		if fromStr != "" {
+			cutoff, _ = time.ParseInLocation("2006-01-02", fromStr, time.Local)
+		}
+		if toStr != "" {
+			ceiling, _ = time.ParseInLocation("2006-01-02", toStr, time.Local)
+			ceiling = ceiling.Add(24*time.Hour - time.Second)
+		}
+	} else if days > 0 {
+		cutoff = time.Now().AddDate(0, 0, -days)
+	}
+
+	if cutoff.IsZero() && ceiling.IsZero() {
+		return all
+	}
+	out := all[:0:0]
+	for _, s := range all {
+		if !cutoff.IsZero() && s.StartTime.Before(cutoff) {
+			continue
+		}
+		if !ceiling.IsZero() && s.StartTime.After(ceiling) {
+			continue
+		}
+		out = append(out, s)
+	}
+	return out
+}
+
+// sessionCost computes cost in USD for a single session's token usage.
+func sessionCost(u models.Usage) float64 {
+	const (
+		prI = 3.0
+		prO = 15.0
+		prR = 0.30
+		prW = 3.75
+	)
+	return float64(u.InputTokens)/1e6*prI +
+		float64(u.OutputTokens)/1e6*prO +
+		float64(u.CacheReadInputTokens)/1e6*prR +
+		float64(u.CacheCreationInputTokens)/1e6*prW
+}
+
+// getStatsByProject handles GET /api/stats/by-project
+func (h *Handler) getStatsByProject(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	sessions := h.filterSessionsByQuery(r)
+
+	type projectRow struct {
+		Project      string  `json:"project"`
+		Sessions     int     `json:"sessions"`
+		InputTokens  int64   `json:"input_tokens"`
+		OutputTokens int64   `json:"output_tokens"`
+		CostUSD      float64 `json:"cost_usd"`
+	}
+	byProject := map[string]*projectRow{}
+	for _, s := range sessions {
+		dir := s.ProjectDir
+		if dir == "" {
+			dir = "unknown"
+		}
+		row, ok := byProject[dir]
+		if !ok {
+			row = &projectRow{Project: dir}
+			byProject[dir] = row
+		}
+		row.Sessions++
+		row.InputTokens += int64(s.TotalUsage.InputTokens)
+		row.OutputTokens += int64(s.TotalUsage.OutputTokens)
+		row.CostUSD += sessionCost(s.TotalUsage)
+	}
+
+	rows := make([]projectRow, 0, len(byProject))
+	for _, r := range byProject {
+		r.CostUSD = math.Round(r.CostUSD*100) / 100
+		rows = append(rows, *r)
+	}
+	sort.Slice(rows, func(i, j int) bool { return rows[i].CostUSD > rows[j].CostUSD })
+
+	writeJSON(w, map[string]any{"projects": rows, "total": len(rows)})
+}
+
+// getStatsByModel handles GET /api/stats/by-model
+func (h *Handler) getStatsByModel(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	sessions := h.filterSessionsByQuery(r)
+
+	type modelRow struct {
+		Model        string  `json:"model"`
+		Sessions     int     `json:"sessions"`
+		InputTokens  int64   `json:"input_tokens"`
+		OutputTokens int64   `json:"output_tokens"`
+		CostUSD      float64 `json:"cost_usd"`
+	}
+	byModel := map[string]*modelRow{}
+	for _, s := range sessions {
+		m := s.Model
+		if m == "" {
+			m = "unknown"
+		}
+		row, ok := byModel[m]
+		if !ok {
+			row = &modelRow{Model: m}
+			byModel[m] = row
+		}
+		row.Sessions++
+		row.InputTokens += int64(s.TotalUsage.InputTokens)
+		row.OutputTokens += int64(s.TotalUsage.OutputTokens)
+		row.CostUSD += sessionCost(s.TotalUsage)
+	}
+
+	rows := make([]modelRow, 0, len(byModel))
+	for _, r := range byModel {
+		r.CostUSD = math.Round(r.CostUSD*100) / 100
+		rows = append(rows, *r)
+	}
+	sort.Slice(rows, func(i, j int) bool { return rows[i].CostUSD > rows[j].CostUSD })
+
+	writeJSON(w, map[string]any{"models": rows, "total": len(rows)})
+}
+
+// classifyActivity returns the work-type label for a first_prompt string.
+func classifyActivity(prompt string) string {
+	p := strings.ToLower(prompt)
+	switch {
+	case containsAny(p, []string{"debug", "fix", "error", "bug", "crash", "fail", "broken", "issue", "exception", "traceback", "panic"}):
+		return "Debugging"
+	case containsAny(p, []string{"refactor", "clean", "simplify", "reorganise", "reorganize", "restructure", "rename", "move", "extract"}):
+		return "Refactoring"
+	case containsAny(p, []string{"add feature", "implement", "build", "create", "new endpoint", "new component", "new page", "new route", "add support", "add the ability"}):
+		return "Feature Dev"
+	case containsAny(p, []string{"subagent", "agent", "delegate", "spawn", "orchestrat", "pipeline", "workflow"}):
+		return "Delegation"
+	case containsAny(p, []string{"write test", "add test", "unit test", "integration test", "spec", "coverage", "jest", "pytest", "phpunit"}):
+		return "Testing"
+	case containsAny(p, []string{"write code", "implement", "function", "class", "struct", "method", "api", "endpoint", "sql", "query", "migration", "schema"}):
+		return "Coding"
+	case containsAny(p, []string{"explain", "what is", "how does", "describe", "understand", "explore", "analyse", "analyze", "review", "read", "look at"}):
+		return "Exploration"
+	default:
+		return "Other"
+	}
+}
+
+func containsAny(s string, keywords []string) bool {
+	for _, k := range keywords {
+		if strings.Contains(s, k) {
+			return true
+		}
+	}
+	return false
+}
+
+// getStatsByActivity handles GET /api/stats/by-activity
+func (h *Handler) getStatsByActivity(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	sessions := h.filterSessionsByQuery(r)
+
+	type activityRow struct {
+		Activity string  `json:"activity"`
+		Sessions int     `json:"sessions"`
+		CostUSD  float64 `json:"cost_usd"`
+		Pct      float64 `json:"pct"`
+	}
+	counts := map[string]int{}
+	costs := map[string]float64{}
+	for _, s := range sessions {
+		act := classifyActivity(s.FirstPrompt)
+		counts[act]++
+		costs[act] += sessionCost(s.TotalUsage)
+	}
+
+	order := []string{"Coding", "Debugging", "Feature Dev", "Exploration", "Refactoring", "Testing", "Delegation", "Other"}
+	total := len(sessions)
+	rows := make([]activityRow, 0, len(order))
+	for _, act := range order {
+		n := counts[act]
+		if n == 0 {
+			continue
+		}
+		pct := 0.0
+		if total > 0 {
+			pct = math.Round(float64(n)/float64(total)*1000) / 10
+		}
+		rows = append(rows, activityRow{
+			Activity: act,
+			Sessions: n,
+			CostUSD:  math.Round(costs[act]*100) / 100,
+			Pct:      pct,
+		})
+	}
+
+	writeJSON(w, map[string]any{"activities": rows, "total": total})
+}
+
+// getShellCommands handles GET /api/shell-commands — top CLI commands from Bash tool_samples.
+func (h *Handler) getShellCommands(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	sessions := h.filterSessionsByQuery(r)
+
+	cmdCounts := map[string]int{}
+	for _, s := range sessions {
+		for _, sample := range s.ToolSamples["Bash"] {
+			trimmed := strings.TrimSpace(sample)
+			if trimmed == "" {
+				continue
+			}
+			// Extract the first word (the CLI command)
+			parts := strings.Fields(trimmed)
+			if len(parts) == 0 {
+				continue
+			}
+			cmd := parts[0]
+			// Strip leading $ or sudo
+			if cmd == "sudo" && len(parts) > 1 {
+				cmd = parts[1]
+			}
+			if cmd == "$" && len(parts) > 1 {
+				cmd = parts[1]
+			}
+			// Only keep short, alphabetic command names
+			if len(cmd) > 0 && len(cmd) <= 20 && !strings.Contains(cmd, "/") {
+				cmdCounts[cmd]++
+			}
+		}
+	}
+
+	type cmdRow struct {
+		Command string `json:"command"`
+		Count   int    `json:"count"`
+	}
+	rows := make([]cmdRow, 0, len(cmdCounts))
+	for cmd, n := range cmdCounts {
+		rows = append(rows, cmdRow{Command: cmd, Count: n})
+	}
+	sort.Slice(rows, func(i, j int) bool { return rows[i].Count > rows[j].Count })
+	if len(rows) > 15 {
+		rows = rows[:15]
+	}
+
+	writeJSON(w, map[string]any{"commands": rows, "total": len(cmdCounts)})
+}
+
+// getMCPServers handles GET /api/mcp-servers — tool call counts grouped by MCP server name.
+func (h *Handler) getMCPServers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	sessions := h.filterSessionsByQuery(r)
+
+	serverCounts := map[string]int{}
+	for _, s := range sessions {
+		for tool, count := range s.ToolCounts {
+			if strings.HasPrefix(tool, "mcp__") {
+				parts := strings.SplitN(tool, "__", 3)
+				if len(parts) >= 2 {
+					serverCounts[parts[1]] += count
+				}
+			}
+		}
+	}
+
+	type serverRow struct {
+		Server string `json:"server"`
+		Calls  int    `json:"calls"`
+	}
+	rows := make([]serverRow, 0, len(serverCounts))
+	for srv, n := range serverCounts {
+		rows = append(rows, serverRow{Server: srv, Calls: n})
+	}
+	sort.Slice(rows, func(i, j int) bool { return rows[i].Calls > rows[j].Calls })
+
+	writeJSON(w, map[string]any{"servers": rows, "total": len(rows)})
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

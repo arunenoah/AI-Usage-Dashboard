@@ -46,6 +46,12 @@ class Handler {
         app.get('/api/image', (req, res) => this.serveImage(req, res));
         // Tasks
         app.get('/api/tasks', (req, res) => this.getTasks(req, res));
+        // Analytics breakdowns
+        app.get('/api/stats/by-project', (req, res) => this.getStatsByProject(req, res));
+        app.get('/api/stats/by-model', (req, res) => this.getStatsByModel(req, res));
+        app.get('/api/stats/by-activity', (req, res) => this.getStatsByActivity(req, res));
+        app.get('/api/shell-commands', (req, res) => this.getShellCommands(req, res));
+        app.get('/api/mcp-servers', (req, res) => this.getMCPServers(req, res));
         // GitHub Copilot endpoints
         app.get('/api/copilot/stats', (req, res) => this.getCopilotStats(req, res));
         app.get('/api/copilot/sessions', (req, res) => this.getCopilotSessions(req, res));
@@ -428,20 +434,24 @@ class Handler {
         });
     }
     /**
-     * Get recent conversations
-     * Returns paginated list of recent user-assistant conversations
+     * Get recent conversations — mirrors Go getConversations handler.
+     * Query params: period (today|week|month|all), limit, page, score_min, score_max
      */
     async getConversations(req, res) {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
-        if (limit < 1 || limit > 100) {
-            res.status(400).json({ error: 'limit must be between 1 and 100' });
-            return;
-        }
+        const period = req.query.period || 'week';
+        let limit = parseInt(req.query.limit) || 500;
+        if (limit < 1 || limit > 10000)
+            limit = 500;
+        let page = parseInt(req.query.page) || 1;
+        if (page < 1)
+            page = 1;
+        const scoreMin = parseInt(req.query.score_min) || 0;
+        let scoreMax = parseInt(req.query.score_max) || 0;
+        if (scoreMax < 1)
+            scoreMax = 10;
         try {
-            const result = await this.store.getConversations(page, limit);
-            // Return array format for test compatibility
-            res.json(result.pairs || []);
+            const result = await this.store.getConversations(page, limit, period, scoreMin, scoreMax);
+            res.json(result);
         }
         catch (err) {
             console.error('Error fetching conversations:', err);
@@ -463,34 +473,85 @@ class Handler {
         res.status(404).send('not found');
     }
     /**
-     * Get task data
-     * Returns task summary and projects
+     * Get task data — returns full { summary, projects } object
      */
     getTasks(req, res) {
-        const tasks = this.store.tasks();
-        // Return array format for test compatibility
-        res.json(tasks.projects || []);
+        res.json(this.store.tasks());
+    }
+    parseQueryWindow(req) {
+        const fromStr = req.query.from;
+        const toStr = req.query.to;
+        const days = parseInt(req.query.days) || 30;
+        if (fromStr || toStr) {
+            const from = fromStr ? new Date(fromStr) : undefined;
+            const to = toStr ? new Date(new Date(toStr).getTime() + 86400000 - 1) : undefined;
+            return { days: 0, from, to };
+        }
+        return { days };
+    }
+    getStatsByProject(req, res) {
+        const { days, from, to } = this.parseQueryWindow(req);
+        res.json(this.store.statsByProject(days, from, to));
+    }
+    getStatsByModel(req, res) {
+        const { days, from, to } = this.parseQueryWindow(req);
+        res.json(this.store.statsByModel(days, from, to));
+    }
+    getStatsByActivity(req, res) {
+        const { days, from, to } = this.parseQueryWindow(req);
+        res.json(this.store.statsByActivity(days, from, to));
+    }
+    getShellCommands(req, res) {
+        const { days, from, to } = this.parseQueryWindow(req);
+        res.json(this.store.shellCommands(days, from, to));
+    }
+    getMCPServers(req, res) {
+        const { days, from, to } = this.parseQueryWindow(req);
+        res.json(this.store.mcpServers(days, from, to));
     }
     /**
-     * Get GitHub Copilot statistics
-     * Returns usage stats specific to Copilot sessions
+     * Get GitHub Copilot statistics — filtered to copilot source
      */
     getCopilotStats(req, res) {
-        res.json({});
+        const fromStr = req.query.from;
+        const toStr = req.query.to;
+        const days = parseInt(req.query.days) || 7;
+        if (fromStr || toStr) {
+            const from = fromStr ? new Date(fromStr) : new Date();
+            const to = toStr ? new Date(toStr) : new Date();
+            res.json(this.store.statsForSourceRange('github-copilot', from, to));
+        }
+        else {
+            res.json(this.store.statsForSourceDays('github-copilot', days));
+        }
     }
     /**
-     * Get GitHub Copilot sessions
-     * Returns list of sessions from GitHub Copilot source
+     * Get GitHub Copilot sessions — filtered to copilot source
      */
     getCopilotSessions(req, res) {
-        res.json({ sessions: [] });
+        const sessions = this.store.sessionsBySource('github-copilot');
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const start = (page - 1) * limit;
+        res.json({ sessions: sessions.slice(start, start + limit), total: sessions.length, page });
     }
     /**
      * Get GitHub Copilot session detail
-     * Currently returns 404 (not implemented)
      */
-    getCopilotSessionDetail(req, res) {
-        res.status(404).json({ error: 'not implemented' });
+    async getCopilotSessionDetail(req, res) {
+        const id = req.params.id;
+        const session = this.store.sessionsBySource('github-copilot').find(s => s.id === id);
+        if (!session) {
+            res.status(404).json({ error: 'session not found' });
+            return;
+        }
+        try {
+            const turns = await this.store.parseTurns(id);
+            res.json({ session, turns });
+        }
+        catch {
+            res.status(500).json({ error: 'failed to fetch session details' });
+        }
     }
 }
 exports.Handler = Handler;

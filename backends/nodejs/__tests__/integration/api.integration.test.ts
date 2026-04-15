@@ -33,9 +33,11 @@ describe('API Integration', () => {
       .expect(200);
 
     expect(response.body).toHaveProperty('daily');
-    expect(response.body).toHaveProperty('summary');
+    expect(response.body).toHaveProperty('total_sessions');
+    expect(response.body).toHaveProperty('total_cost_usd');
     expect(Array.isArray(response.body.daily)).toBe(true);
-    expect(response.body.daily.length).toBe(7);
+    // daily only includes days with sessions — length may be 0..7
+    expect(response.body.daily.length).toBeLessThanOrEqual(7);
   });
 
   test('Session filtering works', () => {
@@ -95,6 +97,6 @@ describe('API Integration', () => {
       .expect(200);
 
     expect(response.body).toHaveProperty('daily');
-    expect(response.body).toHaveProperty('summary');
+    expect(response.body).toHaveProperty('total_sessions');
   });
 });

@@ -55,6 +55,13 @@ export class Handler {
     // Tasks
     app.get('/api/tasks', (req, res) => this.getTasks(req, res));
 
+    // Analytics breakdowns
+    app.get('/api/stats/by-project', (req, res) => this.getStatsByProject(req, res));
+    app.get('/api/stats/by-model', (req, res) => this.getStatsByModel(req, res));
+    app.get('/api/stats/by-activity', (req, res) => this.getStatsByActivity(req, res));
+    app.get('/api/shell-commands', (req, res) => this.getShellCommands(req, res));
+    app.get('/api/mcp-servers', (req, res) => this.getMCPServers(req, res));
+
     // GitHub Copilot endpoints
     app.get('/api/copilot/stats', (req, res) => this.getCopilotStats(req, res));
     app.get('/api/copilot/sessions', (req, res) => this.getCopilotSessions(req, res));
@@ -469,22 +476,22 @@ export class Handler {
   }
 
   /**
-   * Get recent conversations
-   * Returns paginated list of recent user-assistant conversations
+   * Get recent conversations — mirrors Go getConversations handler.
+   * Query params: period (today|week|month|all), limit, page, score_min, score_max
    */
   private async getConversations(req: Request, res: Response): Promise<void> {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-
-    if (limit < 1 || limit > 100) {
-      res.status(400).json({ error: 'limit must be between 1 and 100' });
-      return;
-    }
+    const period = (req.query.period as string) || 'week';
+    let limit = parseInt(req.query.limit as string) || 500;
+    if (limit < 1 || limit > 10000) limit = 500;
+    let page = parseInt(req.query.page as string) || 1;
+    if (page < 1) page = 1;
+    const scoreMin = parseInt(req.query.score_min as string) || 0;
+    let scoreMax = parseInt(req.query.score_max as string) || 0;
+    if (scoreMax < 1) scoreMax = 10;
 
     try {
-      const result = await this.store.getConversations(page, limit);
-      // Return array format for test compatibility
-      res.json(result.pairs || []);
+      const result = await this.store.getConversations(page, limit, period, scoreMin, scoreMax);
+      res.json(result);
     } catch (err) {
       console.error('Error fetching conversations:', err);
       res.status(500).json({ error: 'failed to fetch conversations' });
@@ -508,37 +515,93 @@ export class Handler {
   }
 
   /**
-   * Get task data
-   * Returns task summary and projects
+   * Get task data — returns full { summary, projects } object
    */
   private getTasks(req: Request, res: Response): void {
-    const tasks = this.store.tasks();
-    // Return array format for test compatibility
-    res.json(tasks.projects || []);
+    res.json(this.store.tasks());
+  }
+
+  private parseQueryWindow(req: Request): { days: number; from?: Date; to?: Date } {
+    const fromStr = req.query.from as string;
+    const toStr = req.query.to as string;
+    const days = parseInt(req.query.days as string) || 30;
+    if (fromStr || toStr) {
+      const from = fromStr ? new Date(fromStr) : undefined;
+      const to = toStr ? new Date(new Date(toStr).getTime() + 86400_000 - 1) : undefined;
+      return { days: 0, from, to };
+    }
+    return { days };
+  }
+
+  private getStatsByProject(req: Request, res: Response): void {
+    const { days, from, to } = this.parseQueryWindow(req);
+    res.json(this.store.statsByProject(days, from, to));
+  }
+
+  private getStatsByModel(req: Request, res: Response): void {
+    const { days, from, to } = this.parseQueryWindow(req);
+    res.json(this.store.statsByModel(days, from, to));
+  }
+
+  private getStatsByActivity(req: Request, res: Response): void {
+    const { days, from, to } = this.parseQueryWindow(req);
+    res.json(this.store.statsByActivity(days, from, to));
+  }
+
+  private getShellCommands(req: Request, res: Response): void {
+    const { days, from, to } = this.parseQueryWindow(req);
+    res.json(this.store.shellCommands(days, from, to));
+  }
+
+  private getMCPServers(req: Request, res: Response): void {
+    const { days, from, to } = this.parseQueryWindow(req);
+    res.json(this.store.mcpServers(days, from, to));
   }
 
   /**
-   * Get GitHub Copilot statistics
-   * Returns usage stats specific to Copilot sessions
+   * Get GitHub Copilot statistics — filtered to copilot source
    */
   private getCopilotStats(req: Request, res: Response): void {
-    res.json({});
+    const fromStr = req.query.from as string;
+    const toStr = req.query.to as string;
+    const days = parseInt(req.query.days as string) || 7;
+
+    if (fromStr || toStr) {
+      const from = fromStr ? new Date(fromStr) : new Date();
+      const to = toStr ? new Date(toStr) : new Date();
+      res.json(this.store.statsForSourceRange('github-copilot', from, to));
+    } else {
+      res.json(this.store.statsForSourceDays('github-copilot', days));
+    }
   }
 
   /**
-   * Get GitHub Copilot sessions
-   * Returns list of sessions from GitHub Copilot source
+   * Get GitHub Copilot sessions — filtered to copilot source
    */
   private getCopilotSessions(req: Request, res: Response): void {
-    res.json({ sessions: [] });
+    const sessions = this.store.sessionsBySource('github-copilot');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const start = (page - 1) * limit;
+    res.json({ sessions: sessions.slice(start, start + limit), total: sessions.length, page });
   }
 
   /**
    * Get GitHub Copilot session detail
-   * Currently returns 404 (not implemented)
    */
-  private getCopilotSessionDetail(req: Request, res: Response): void {
-    res.status(404).json({ error: 'not implemented' });
+  private async getCopilotSessionDetail(req: Request, res: Response): Promise<void> {
+    const id = req.params.id;
+    const session = this.store.sessionsBySource('github-copilot').find(s => s.id === id);
+    if (!session) {
+      res.status(404).json({ error: 'session not found' });
+      return;
+    }
+    try {
+      const turns = await this.store.parseTurns(id);
+      res.json({ session, turns });
+    } catch {
+      res.status(500).json({ error: 'failed to fetch session details' });
+    }
   }
 }
 

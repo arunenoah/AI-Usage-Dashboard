@@ -11,6 +11,11 @@ import SessionDetail from '../components/SessionDetail.jsx'
 import SystemInfoCard from '../components/SystemInfoCard.jsx'
 import RecentPrompts from '../components/RecentPrompts.jsx'
 import TasksPanel from '../components/TasksPanel.jsx'
+import ByProjectPanel from '../components/ByProjectPanel.jsx'
+import ByModelPanel from '../components/ByModelPanel.jsx'
+import ByActivityPanel from '../components/ByActivityPanel.jsx'
+import ShellCommandsPanel from '../components/ShellCommandsPanel.jsx'
+import MCPServersPanel from '../components/MCPServersPanel.jsx'
 import { useWebSocket } from '../hooks/useWebSocket.js'
 
 // ─── Date range presets ───────────────────────────────────────────────────────
@@ -230,14 +235,45 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Token chart — synced with global date filter */}
+      {/* Cost & spend breakdown — highest signal for most users */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <ByProjectPanel query={buildQuery(filter)} />
+        <ByModelPanel query={buildQuery(filter)} />
+      </div>
+
+      {/* Work classification — what type of work is being done */}
+      <ByActivityPanel query={buildQuery(filter)} />
+
+      {/* Token trend over time */}
       <TokenChart
         daily={stats.daily || []}
         currentDays={currentDays}
         onRangeChange={handleChartRangeChange}
       />
 
-      {/* Session explorer + Prompt insights */}
+      {/* Tool usage + Hourly activity */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <ToolChart toolCounts={stats.tool_counts || {}} />
+        <ActivityChart sessions={sessions} />
+      </div>
+
+      {/* Shell Commands + MCP Servers */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <ShellCommandsPanel query={buildQuery(filter)} />
+        <MCPServersPanel query={buildQuery(filter)} />
+      </div>
+
+      {/* Conversations — full width */}
+      <RecentPrompts onSessionClick={setSelectedSession} />
+
+      {/* Context health + Tasks + System info */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+        <ContextHealth sessions={sessions} />
+        <TasksPanel />
+        <SystemInfoCard />
+      </div>
+
+      {/* Session explorer + Prompt score — detailed drill-down */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 20 }}>
         <SessionTable
           sessions={sessions}
@@ -246,22 +282,6 @@ export default function Dashboard() {
           projects={stats.projects || []}
         />
         <PromptScore days={filter.from ? 90 : (filter.days || 30)} />
-      </div>
-
-      {/* Tool usage + Hourly activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <ToolChart toolCounts={stats.tool_counts || {}} />
-        <ActivityChart sessions={sessions} />
-      </div>
-
-      {/* Conversations — full width */}
-      <RecentPrompts onSessionClick={setSelectedSession} />
-
-      {/* Context health + System info + Tasks */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
-        <ContextHealth sessions={sessions} />
-        <SystemInfoCard />
-        <TasksPanel />
       </div>
 
       {/* Session detail drawer */}

@@ -138,28 +138,26 @@ describe('Store', () => {
       const stats = store.statsForDays(1);
       expect(stats).toBeDefined();
       expect(Array.isArray(stats.daily)).toBe(true);
-      expect(stats.summary).toBeDefined();
+      // Go-compatible: top-level fields, no summary wrapper
+      expect(stats).toHaveProperty('total_sessions');
+      expect(stats).toHaveProperty('total_input_tokens');
+      expect(stats).toHaveProperty('total_cost_usd');
     });
 
-    test('should return correct number of days', () => {
+    test('should return only days with sessions (no empty-day pre-fill)', () => {
+      // With no sessions, daily is empty — matches Go computeStats behavior
       const stats1 = store.statsForDays(1);
-      expect(stats1.daily).toHaveLength(1);
-
-      const stats7 = store.statsForDays(7);
-      expect(stats7.daily).toHaveLength(7);
-
-      const stats30 = store.statsForDays(30);
-      expect(stats30.daily).toHaveLength(30);
+      expect(Array.isArray(stats1.daily)).toBe(true);
+      expect(stats1.daily.length).toBe(0);
     });
 
     test('should calculate daily stats with empty sessions', () => {
+      // With no sessions, total_sessions = 0 and daily = []
       const stats = store.statsForDays(1);
-      const today = stats.daily[0];
-
-      expect(today.sessions).toBe(0);
-      expect(today.input_tokens).toBe(0);
-      expect(today.output_tokens).toBe(0);
-      expect(today.est_cost_usd).toBe(0);
+      expect(stats.total_sessions).toBe(0);
+      expect(stats.total_input_tokens).toBe(0);
+      expect(stats.total_output_tokens).toBe(0);
+      expect(stats.total_cost_usd).toBe(0);
     });
 
     test('should aggregate sessions for today', () => {
@@ -227,35 +225,66 @@ describe('Store', () => {
 
       const stats = store.statsForDays(1);
 
-      expect(stats.summary.totalSessions).toBe(1);
-      expect(stats.summary.totalTokens).toBe(1500);
-      // Cost is calculated from token usage: (1000/1e6 * 3.0) + (500/1e6 * 15.0) = 0.0105
-      expect(stats.summary.totalCost).toBeGreaterThan(0);
-      expect(stats.summary.totalCost).toBeCloseTo(0.0105, 4);
+      // Go-compatible: top-level fields
+      expect(stats.total_sessions).toBe(1);
+      expect(stats.total_input_tokens).toBe(1000);
+      expect(stats.total_output_tokens).toBe(500);
+      // Cost: (1000/1e6 * 3.0) + (500/1e6 * 15.0) = 0.0105, rounded to 2dp = 0.01
+      expect(stats.total_cost_usd).toBeGreaterThan(0);
+      expect(stats.total_cost_usd).toBeCloseTo(0.0105, 1);
     });
 
-    test('should have proper date format in daily stats', () => {
+    test('should have proper date format in daily stats when sessions exist', () => {
+      const now = new Date();
+      store.addSession({
+        id: 'fmt-test',
+        project_dir: '/p',
+        source: 'claude-code',
+        start_time: now.toISOString(),
+        end_time: now.toISOString(),
+        model: 'claude-3',
+        user_turns: 1,
+        assist_turns: 1,
+        total_usage: { input_tokens: 100, output_tokens: 50 },
+      });
       const stats = store.statsForDays(1);
-      const today = stats.daily[0];
-
-      expect(today.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(stats.daily.length).toBeGreaterThan(0);
+      expect(stats.daily[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
 
-    test('should order days from today backwards', () => {
-      const stats = store.statsForDays(3);
-      const today = new Date();
-      const yesterday = new Date(today);
+    test('should order days ascending (oldest first) when sessions exist', () => {
+      // Go sorts daily ascending by date
+      const now = new Date();
+      const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
-      const dayBefore = new Date(today);
-      dayBefore.setDate(dayBefore.getDate() - 2);
 
-      const todayStr = today.toISOString().split('T')[0];
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-      const dayBeforeStr = dayBefore.toISOString().split('T')[0];
+      store.addSession({
+        id: 'day-today',
+        project_dir: '/p',
+        source: 'claude-code',
+        start_time: now.toISOString(),
+        end_time: now.toISOString(),
+        model: 'claude-3',
+        user_turns: 1,
+        assist_turns: 1,
+        total_usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      store.addSession({
+        id: 'day-yesterday',
+        project_dir: '/p',
+        source: 'claude-code',
+        start_time: yesterday.toISOString(),
+        end_time: yesterday.toISOString(),
+        model: 'claude-3',
+        user_turns: 1,
+        assist_turns: 1,
+        total_usage: { input_tokens: 100, output_tokens: 50 },
+      });
 
-      expect(stats.daily[0].date).toBe(todayStr);
-      expect(stats.daily[1].date).toBe(yesterdayStr);
-      expect(stats.daily[2].date).toBe(dayBeforeStr);
+      const stats = store.statsForDays(7);
+      // daily is sorted ascending; yesterday < today
+      expect(stats.daily.length).toBe(2);
+      expect(stats.daily[0].date < stats.daily[1].date).toBe(true);
     });
   });
 
@@ -268,7 +297,8 @@ describe('Store', () => {
       const stats = store.statsForRange(weekAgo, today);
 
       expect(Array.isArray(stats.daily)).toBe(true);
-      expect(stats.daily.length).toBeGreaterThanOrEqual(7);
+      // daily only includes days with sessions — may be empty with no test sessions
+      expect(stats).toHaveProperty('total_sessions');
     });
 
     test('should aggregate sessions within date range', () => {
@@ -296,7 +326,8 @@ describe('Store', () => {
 
       const stats = store.statsForRange(weekAgo, today);
 
-      expect(stats.summary.totalSessions).toBe(1);
+      // Go-compatible: top-level field
+      expect(stats.total_sessions).toBe(1);
     });
   });
 

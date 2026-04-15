@@ -13,6 +13,27 @@
 - Exposes REST APIs for dashboard data and detailed drill-down views.
 - Serves a React + Vite UI from the same Go binary.
 
+## Dashboard Sections
+
+| Section | What it shows |
+|---|---|
+| **Stat Cards** | Sessions, tokens, projects, tool calls at a glance |
+| **By Project** | Cost and session count per project directory |
+| **By Model** | Output tokens and cost broken down by Claude model (Sonnet, Opus, Haiku) |
+| **By Activity** | Sessions classified by work type — Coding, Debugging, Feature Dev, Exploration, Refactoring, Testing, Delegation |
+| **Token Chart** | Daily input/output token usage over the selected date range |
+| **Tool Usage** | Top tools with clickable drill-down into sample inputs |
+| **Hourly Activity** | When you're most productive (24-hour bar chart) |
+| **Shell Commands** | Top CLI commands extracted from Bash tool calls |
+| **MCP Servers** | Tool call counts grouped by MCP server name |
+| **Conversations** | Recent user→assistant pairs with CARE prompt scores |
+| **Context Health** | Active session context usage |
+| **Tasks** | Aggregated task status across all projects |
+| **Session Explorer** | Paginated session table with detail drawer |
+| **Prompt Score** | CARE score distribution and quality breakdown |
+
+All sections respond to the global date filter (Today / 7 Days / 1 Month / Custom / All).
+
 ## Quick Start
 
 ### Prerequisites
@@ -105,6 +126,11 @@ Base URL: `http://localhost:8765`
 - `GET /api/health` — Service health probe
 - `GET /api/stats?days=N` — Aggregate stats for relative date range
 - `GET /api/stats?from=YYYY-MM-DD&to=YYYY-MM-DD` — Aggregate stats for explicit date range
+- `GET /api/stats/by-project?days=N` — Cost + session count per project directory
+- `GET /api/stats/by-model?days=N` — Output tokens + cost per Claude model
+- `GET /api/stats/by-activity?days=N` — Session counts classified by work type
+- `GET /api/shell-commands?days=N` — Top CLI commands from Bash tool samples
+- `GET /api/mcp-servers?days=N` — Tool call counts grouped by MCP server name
 
 **Sessions**
 - `GET /api/sessions?page=1&limit=20&project=<substring>` — Paged session list with optional project filter
