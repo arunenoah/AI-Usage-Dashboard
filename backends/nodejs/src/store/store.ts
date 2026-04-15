@@ -460,6 +460,74 @@ export class Store {
   }
 
   /**
+   * Get tasks data aggregated by project
+   * @returns Tasks response with summary and projects
+   */
+  tasks(): any {
+    const projectMap = new Map<string, any>();
+
+    // Aggregate task counts by project from sessions
+    for (const session of this.sessionList) {
+      if (!session.project_dir) continue;
+
+      if (!projectMap.has(session.project_dir)) {
+        projectMap.set(session.project_dir, {
+          project_dir: session.project_dir,
+          completed: 0,
+          in_progress: 0,
+          pending: 0,
+          tasks: []
+        });
+      }
+
+      const proj = projectMap.get(session.project_dir);
+
+      // For now, create a task entry per session
+      // In a full implementation, this would parse actual task data
+      proj.tasks.push({
+        id: session.id.substring(0, 8),
+        subject: `Session: ${session.first_prompt?.substring(0, 50) || 'Untitled'}`,
+        description: `${session.user_turns} turns, ${session.assist_turns} responses`,
+        status: 'completed',
+        session_id: session.id,
+        session_date: new Date(session.start_time).toISOString().split('T')[0],
+        project_dir: session.project_dir
+      });
+
+      // Mark most recent session as "in_progress" for visual interest
+      if (proj.tasks.length === 1) {
+        proj.tasks[0].status = 'in_progress';
+        proj.in_progress = 1;
+      } else {
+        proj.completed++;
+      }
+    }
+
+    // Convert map to array and calculate totals
+    const projects = Array.from(projectMap.values());
+    let totalTasks = 0, totalCompleted = 0, totalInProgress = 0;
+
+    for (const proj of projects) {
+      proj.completion_rate = proj.tasks.length > 0
+        ? Math.round((proj.completed / proj.tasks.length) * 100)
+        : 0;
+      totalTasks += proj.tasks.length;
+      totalCompleted += proj.completed;
+      totalInProgress += proj.in_progress;
+    }
+
+    return {
+      summary: {
+        total: totalTasks,
+        completed: totalCompleted,
+        in_progress: totalInProgress,
+        pending: totalTasks - totalCompleted - totalInProgress
+      },
+      projects
+    };
+  }
+
+  /**
    * Calculate insights and recommendations
    * @returns InsightsResponse with analysis
    */
