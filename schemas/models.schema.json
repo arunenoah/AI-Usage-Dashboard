@@ -1,0 +1,1043 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Usage Dashboard Data Models",
+  "description": "Single source of truth for all data model definitions across Go and NodeJS backends",
+  "type": "object",
+  "definitions": {
+    "Usage": {
+      "type": "object",
+      "description": "Token usage metrics for one assistant turn",
+      "properties": {
+        "input_tokens": {
+          "type": "integer",
+          "description": "Number of input tokens consumed"
+        },
+        "output_tokens": {
+          "type": "integer",
+          "description": "Number of output tokens generated"
+        },
+        "cache_read_input_tokens": {
+          "type": "integer",
+          "description": "Number of input tokens read from cache",
+          "default": 0
+        },
+        "cache_creation_input_tokens": {
+          "type": "integer",
+          "description": "Number of input tokens used to create cache",
+          "default": 0
+        }
+      },
+      "required": ["input_tokens", "output_tokens"]
+    },
+    "ToolDetail": {
+      "type": "object",
+      "description": "One tool invocation with its key input",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "description": "Name of the tool invoked"
+        },
+        "input": {
+          "type": "string",
+          "description": "Key input parameter or summary for the tool call"
+        }
+      },
+      "required": ["tool"]
+    },
+    "ConversationPair": {
+      "type": "object",
+      "description": "A matched user→assistant turn pair representing one complete exchange",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "Unique identifier for the session containing this conversation"
+        },
+        "project_dir": {
+          "type": "string",
+          "description": "Directory path of the project being worked on"
+        },
+        "git_branch": {
+          "type": "string",
+          "description": "Git branch active during this conversation"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model name used (e.g., 'claude-3-5-sonnet-20241022')"
+        },
+        "user_text": {
+          "type": "string",
+          "description": "The user's message/prompt text"
+        },
+        "assist_text": {
+          "type": "string",
+          "description": "The assistant's response text"
+        },
+        "tool_calls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tool names invoked in this turn"
+        },
+        "tool_details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ToolDetail"
+          },
+          "description": "Ordered list of tool invocations with their inputs"
+        },
+        "usage": {
+          "$ref": "#/definitions/Usage",
+          "description": "Token usage metrics for this exchange"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "description": "Duration of the turn in milliseconds"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when this exchange occurred"
+        },
+        "context_pct": {
+          "type": "number",
+          "description": "Percentage of context window used in this turn (0-100)"
+        },
+        "cost": {
+          "type": "number",
+          "description": "Estimated cost in USD for this exchange"
+        },
+        "prompt_score": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Quality rating of the user's prompt (1-10 scale)"
+        },
+        "prompt_tips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Improvement suggestions for the user's prompt"
+        }
+      },
+      "required": [
+        "session_id",
+        "project_dir",
+        "model",
+        "user_text",
+        "assist_text",
+        "timestamp",
+        "cost"
+      ]
+    },
+    "DailyStats": {
+      "type": "object",
+      "description": "Aggregated token and cost statistics for a single day",
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date in YYYY-MM-DD format"
+        },
+        "input_tokens": {
+          "type": "integer",
+          "description": "Total input tokens consumed on this date"
+        },
+        "output_tokens": {
+          "type": "integer",
+          "description": "Total output tokens generated on this date"
+        },
+        "cache_read": {
+          "type": "integer",
+          "description": "Total cache read tokens on this date"
+        },
+        "cache_creation": {
+          "type": "integer",
+          "description": "Total cache creation tokens on this date"
+        },
+        "sessions": {
+          "type": "integer",
+          "description": "Number of sessions on this date"
+        },
+        "est_cost_usd": {
+          "type": "number",
+          "description": "Estimated total cost in USD for this date"
+        }
+      },
+      "required": [
+        "date",
+        "input_tokens",
+        "output_tokens",
+        "sessions",
+        "est_cost_usd"
+      ]
+    },
+    "Session": {
+      "type": "object",
+      "description": "Represents a parsed Claude Code session with all metadata and usage",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique session identifier"
+        },
+        "file_path": {
+          "type": "string",
+          "description": "Full path to the session file"
+        },
+        "project_dir": {
+          "type": "string",
+          "description": "Root directory of the project being worked on"
+        },
+        "git_branch": {
+          "type": "string",
+          "description": "Git branch name active during the session"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model name used throughout the session"
+        },
+        "start_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when session started"
+        },
+        "end_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when session ended"
+        },
+        "user_turns": {
+          "type": "integer",
+          "description": "Number of user messages in the session"
+        },
+        "assist_turns": {
+          "type": "integer",
+          "description": "Number of assistant messages in the session"
+        },
+        "total_usage": {
+          "$ref": "#/definitions/Usage",
+          "description": "Aggregated token usage for the entire session"
+        },
+        "tool_counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Map of tool names to invocation counts"
+        },
+        "tool_samples": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "Map of tool names to up to 5 sample input examples"
+        },
+        "first_prompt": {
+          "type": "string",
+          "description": "The very first user prompt in the session"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "claude-code",
+            "github-copilot",
+            "opencode",
+            "windsurf"
+          ],
+          "description": "Source IDE or editor where the session originated"
+        },
+        "max_turn_duration_ms": {
+          "type": "integer",
+          "description": "Maximum duration of any single turn in milliseconds"
+        },
+        "avg_turn_duration_ms": {
+          "type": "integer",
+          "description": "Average duration across all turns in milliseconds"
+        }
+      },
+      "required": [
+        "id",
+        "project_dir",
+        "model",
+        "start_time",
+        "end_time",
+        "user_turns",
+        "assist_turns",
+        "total_usage",
+        "source"
+      ]
+    },
+    "ModelStats": {
+      "type": "object",
+      "description": "Aggregated token usage and cost statistics for a single model",
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "Model name (e.g., 'claude-3-5-sonnet-20241022')"
+        },
+        "input_tokens": {
+          "type": "integer",
+          "description": "Total input tokens consumed with this model"
+        },
+        "output_tokens": {
+          "type": "integer",
+          "description": "Total output tokens generated with this model"
+        },
+        "cache_read_input_tokens": {
+          "type": "integer",
+          "description": "Total cache read input tokens for this model"
+        },
+        "cache_creation_input_tokens": {
+          "type": "integer",
+          "description": "Total cache creation input tokens for this model"
+        },
+        "est_cost_usd": {
+          "type": "number",
+          "description": "Estimated total cost in USD for this model"
+        }
+      },
+      "required": [
+        "model",
+        "input_tokens",
+        "output_tokens",
+        "est_cost_usd"
+      ]
+    },
+    "ToolUsage": {
+      "type": "object",
+      "description": "Summary of usage for a single tool across all sessions",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the tool (e.g., 'Bash', 'Read', 'Edit')"
+        },
+        "count": {
+          "type": "integer",
+          "description": "Total number of times this tool was invoked"
+        },
+        "example": {
+          "type": "string",
+          "description": "Example input or usage pattern for this tool"
+        }
+      },
+      "required": ["name", "count"]
+    },
+    "TaskItem": {
+      "type": "object",
+      "description": "One task from the task management system",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique task identifier"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Brief task title in imperative form"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of what needs to be done"
+        },
+        "active_form": {
+          "type": "string",
+          "description": "Present continuous form shown when task is in progress"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed"],
+          "description": "Current status of the task"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs of tasks that cannot start until this task is completed"
+        },
+        "blocked_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs of tasks that must be completed before this task can start"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session ID where this task was created"
+        },
+        "session_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of the session in YYYY-MM-DD format"
+        },
+        "project_dir": {
+          "type": "string",
+          "description": "Project directory associated with this task"
+        }
+      },
+      "required": ["id", "subject", "description", "status"]
+    },
+    "RawContent": {
+      "type": "object",
+      "description": "One content block from a message (text, thinking, or tool_use)",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["text", "thinking", "tool_use"],
+          "description": "Type of content block"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text content when type is 'text'"
+        },
+        "thinking": {
+          "type": "string",
+          "description": "Thinking content when type is 'thinking'"
+        },
+        "name": {
+          "type": "string",
+          "description": "Tool name when type is 'tool_use'"
+        },
+        "input": {
+          "description": "Input parameters for the tool when type is 'tool_use' (can be any JSON value)"
+        }
+      },
+      "required": ["type"]
+    },
+    "RawMessage": {
+      "type": "object",
+      "description": "Message payload from a session entry",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["user", "assistant"],
+          "description": "Role of the message sender"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model name that generated this message (assistant only)"
+        },
+        "content": {
+          "description": "Message content - can be array of content blocks or plain string"
+        },
+        "usage": {
+          "$ref": "#/definitions/Usage",
+          "description": "Token usage for this message"
+        }
+      },
+      "required": ["role", "content"]
+    },
+    "RawEntry": {
+      "type": "object",
+      "description": "One line from a Claude Code JSONL session file",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Entry type (e.g., 'message', 'tool', 'event')"
+        },
+        "subtype": {
+          "type": "string",
+          "description": "Entry subtype for additional categorization"
+        },
+        "uuid": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this entry"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of this entry"
+        },
+        "message": {
+          "$ref": "#/definitions/RawMessage",
+          "description": "Message payload if this is a message entry"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "description": "Duration of the operation in milliseconds"
+        },
+        "git_branch": {
+          "type": "string",
+          "description": "Git branch name at the time of this entry"
+        }
+      },
+      "required": ["type", "uuid", "timestamp"]
+    },
+    "InsightDimension": {
+      "type": "object",
+      "description": "One scored dimension in the prompt quality breakdown",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Display name of the dimension"
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Score for this dimension (0-100)"
+        },
+        "tier": {
+          "type": "string",
+          "description": "Performance tier (e.g., 'Bronze', 'Silver', 'Gold')"
+        },
+        "value": {
+          "type": "string",
+          "description": "Current value or status string"
+        },
+        "description": {
+          "type": "string",
+          "description": "Plain English explanation of this dimension"
+        }
+      },
+      "required": ["label", "score", "tier"]
+    },
+    "Insight": {
+      "type": "object",
+      "description": "One actionable finding or recommendation",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["warning", "info", "success", "error"],
+          "description": "Type of insight"
+        },
+        "title": {
+          "type": "string",
+          "description": "Brief title of the insight"
+        },
+        "text": {
+          "type": "string",
+          "description": "Detailed explanation"
+        },
+        "impact": {
+          "type": "string",
+          "description": "Expected impact of addressing this insight"
+        }
+      },
+      "required": ["type", "title", "text"]
+    },
+    "PromptExample": {
+      "type": "object",
+      "description": "Real prompt from user's conversations with before/after comparison",
+      "properties": {
+        "bad": {
+          "type": "string",
+          "description": "Actual prompt from the user's conversations"
+        },
+        "good": {
+          "type": "string",
+          "description": "Rewritten version showing how to improve"
+        },
+        "why": {
+          "type": "string",
+          "description": "Short explanation of the improvement"
+        }
+      },
+      "required": ["bad", "good", "why"]
+    },
+    "TierGoal": {
+      "type": "object",
+      "description": "Gap between current tier and next tier for one dimension",
+      "properties": {
+        "dimension": {
+          "type": "string",
+          "description": "Name of the dimension"
+        },
+        "current_value": {
+          "type": "string",
+          "description": "Current value of this dimension"
+        },
+        "target_value": {
+          "type": "string",
+          "description": "Target value needed for next tier"
+        },
+        "delta": {
+          "type": "string",
+          "description": "Gap between current and target"
+        },
+        "current_tier": {
+          "type": "string",
+          "description": "Current tier (e.g., 'Bronze')"
+        },
+        "next_tier": {
+          "type": "string",
+          "description": "Next tier to achieve (e.g., 'Silver')"
+        },
+        "met": {
+          "type": "boolean",
+          "description": "Whether target is already met"
+        },
+        "is_weakest": {
+          "type": "boolean",
+          "description": "Whether this dimension is holding back overall tier"
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PromptExample"
+          },
+          "description": "Real prompts showing improvement areas"
+        }
+      },
+      "required": [
+        "dimension",
+        "current_value",
+        "target_value",
+        "current_tier",
+        "next_tier",
+        "met"
+      ]
+    },
+    "HaikuImprovement": {
+      "type": "object",
+      "description": "One actionable prompt improvement pattern from Claude Haiku analysis",
+      "properties": {
+        "pattern": {
+          "type": "string",
+          "description": "Pattern or issue identified"
+        },
+        "example_fix": {
+          "type": "string",
+          "description": "Example of how to fix this pattern"
+        },
+        "impact": {
+          "type": "string",
+          "enum": ["high", "medium"],
+          "description": "Expected impact of applying this improvement"
+        }
+      },
+      "required": ["pattern", "example_fix", "impact"]
+    },
+    "HaikuRewrite": {
+      "type": "object",
+      "description": "Before/after rewrite of the user's weakest prompt",
+      "properties": {
+        "original": {
+          "type": "string",
+          "description": "Original user prompt"
+        },
+        "improved": {
+          "type": "string",
+          "description": "Rewritten version of the prompt"
+        },
+        "why": {
+          "type": "string",
+          "description": "Explanation of why the rewrite is better"
+        }
+      },
+      "required": ["original", "improved", "why"]
+    },
+    "HaikuAnalysis": {
+      "type": "object",
+      "description": "Structured response from Claude Haiku analysis",
+      "properties": {
+        "tier_justification": {
+          "type": "string",
+          "description": "Explanation of the user's current tier"
+        },
+        "top_improvements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HaikuImprovement"
+          },
+          "description": "Top improvement patterns identified"
+        },
+        "strengths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Strengths in the user's prompting"
+        },
+        "rewrite": {
+          "$ref": "#/definitions/HaikuRewrite",
+          "description": "Before/after rewrite of weakest prompt"
+        },
+        "insights": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Insight"
+          },
+          "description": "Additional insights and findings"
+        },
+        "analyzed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of analysis"
+        },
+        "prompt_count": {
+          "type": "integer",
+          "description": "Number of prompts analyzed"
+        }
+      },
+      "required": [
+        "tier_justification",
+        "top_improvements",
+        "strengths",
+        "analyzed_at",
+        "prompt_count"
+      ]
+    },
+    "HaikuCache": {
+      "type": "object",
+      "description": "Persisted Haiku analysis cache",
+      "properties": {
+        "analysis": {
+          "$ref": "#/definitions/HaikuAnalysis",
+          "description": "The cached analysis"
+        },
+        "analyzed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the analysis was performed"
+        },
+        "prompt_hash": {
+          "type": "string",
+          "description": "Hash of the prompts that were analyzed"
+        }
+      },
+      "required": ["analyzed_at", "prompt_hash"]
+    },
+    "InsightsResponse": {
+      "type": "object",
+      "description": "Full response from /api/insights endpoint",
+      "properties": {
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Overall prompt quality score"
+        },
+        "tier": {
+          "type": "string",
+          "description": "Current tier (e.g., 'Bronze', 'Silver', 'Gold')"
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/InsightDimension"
+          },
+          "description": "Breakdown by dimension"
+        },
+        "insights": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Insight"
+          },
+          "description": "Actionable insights and recommendations"
+        },
+        "cache_pct": {
+          "type": "number",
+          "description": "Percentage of context using cache"
+        },
+        "avg_turns": {
+          "type": "number",
+          "description": "Average number of turns per session"
+        },
+        "high_ctx_sessions": {
+          "type": "integer",
+          "description": "Number of sessions with high context usage"
+        },
+        "specific_pct": {
+          "type": "number",
+          "description": "Percentage of specific (not generic) prompts"
+        },
+        "total_sessions": {
+          "type": "integer",
+          "description": "Total number of sessions analyzed"
+        },
+        "avg_prompt_len": {
+          "type": "number",
+          "description": "Average prompt length in characters"
+        },
+        "output_ratio": {
+          "type": "number",
+          "description": "Ratio of output to input tokens"
+        },
+        "ownership_pct": {
+          "type": "number",
+          "description": "Percentage of prompts showing domain ownership"
+        },
+        "agent_usage_pct": {
+          "type": "number",
+          "description": "Percentage of conversations using agents"
+        },
+        "avg_tool_diversity": {
+          "type": "number",
+          "description": "Average number of different tools used per session"
+        },
+        "next_tier_goals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TierGoal"
+          },
+          "description": "Goals to reach next tier"
+        },
+        "ai_analysis": {
+          "$ref": "#/definitions/HaikuAnalysis",
+          "description": "Optional AI-generated analysis from Haiku"
+        },
+        "ai_loading": {
+          "type": "boolean",
+          "description": "Whether AI analysis is currently being generated"
+        }
+      },
+      "required": [
+        "score",
+        "tier",
+        "dimensions",
+        "insights",
+        "total_sessions"
+      ]
+    },
+    "Stats": {
+      "type": "object",
+      "description": "Top-level aggregated dashboard statistics response",
+      "properties": {
+        "total_sessions": {
+          "type": "integer",
+          "description": "Number of sessions in current filter"
+        },
+        "total_all_sessions": {
+          "type": "integer",
+          "description": "Total number of sessions unfiltered"
+        },
+        "total_input_tokens": {
+          "type": "integer",
+          "description": "Sum of all input tokens"
+        },
+        "total_output_tokens": {
+          "type": "integer",
+          "description": "Sum of all output tokens"
+        },
+        "total_cache_read_tokens": {
+          "type": "integer",
+          "description": "Sum of all cache read tokens"
+        },
+        "total_cache_creation_tokens": {
+          "type": "integer",
+          "description": "Sum of all cache creation tokens"
+        },
+        "total_cost_usd": {
+          "type": "number",
+          "description": "Estimated total cost in USD"
+        },
+        "avg_session_cost_usd": {
+          "type": "number",
+          "description": "Average cost per session in USD"
+        },
+        "avg_session_tokens": {
+          "type": "integer",
+          "description": "Average total tokens per session"
+        },
+        "daily": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DailyStats"
+          },
+          "description": "Daily breakdown of statistics"
+        },
+        "tool_counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Aggregated tool usage counts"
+        },
+        "active_session": {
+          "$ref": "#/definitions/Session",
+          "description": "Currently active session if any"
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of unique projects in the data"
+        }
+      },
+      "required": [
+        "total_sessions",
+        "total_input_tokens",
+        "total_output_tokens",
+        "total_cost_usd",
+        "daily",
+        "tool_counts",
+        "projects"
+      ]
+    },
+    "TodoItem": {
+      "type": "object",
+      "description": "One task item from the todo system",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "Task description text"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed"],
+          "description": "Current status of the todo"
+        },
+        "session_id": {
+          "type": "string",
+          "description": "Session where this todo was created"
+        }
+      },
+      "required": ["content", "status"]
+    },
+    "SystemInfo": {
+      "type": "object",
+      "description": "System metadata and configuration information",
+      "properties": {
+        "enabled_plugins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of enabled plugins"
+        },
+        "mcp_servers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of available MCP servers"
+        },
+        "always_thinking_enabled": {
+          "type": "boolean",
+          "description": "Whether extended thinking is enabled"
+        },
+        "total_session_files": {
+          "type": "integer",
+          "description": "Total number of session files"
+        },
+        "total_project_dirs": {
+          "type": "integer",
+          "description": "Total number of unique projects"
+        },
+        "plan_count": {
+          "type": "integer",
+          "description": "Number of plans created"
+        },
+        "task_count": {
+          "type": "integer",
+          "description": "Number of tasks created"
+        },
+        "total_messages_all_time": {
+          "type": "integer",
+          "description": "Total messages across all sessions"
+        },
+        "first_session_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of first session"
+        },
+        "model_usage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModelStats"
+          },
+          "description": "Model usage statistics"
+        },
+        "paste_cache_count": {
+          "type": "integer",
+          "description": "Number of items in paste cache"
+        },
+        "file_history_count": {
+          "type": "integer",
+          "description": "Number of items in file history"
+        },
+        "todos_completed": {
+          "type": "integer",
+          "description": "Number of completed todos"
+        },
+        "todos_pending": {
+          "type": "integer",
+          "description": "Number of pending todos"
+        },
+        "recent_todos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TodoItem"
+          },
+          "description": "Recently created todos"
+        }
+      }
+    },
+    "ProjectTaskSummary": {
+      "type": "object",
+      "description": "Task summary aggregated per project",
+      "properties": {
+        "project_dir": {
+          "type": "string",
+          "description": "Project directory path"
+        },
+        "completed": {
+          "type": "integer",
+          "description": "Number of completed tasks"
+        },
+        "in_progress": {
+          "type": "integer",
+          "description": "Number of tasks in progress"
+        },
+        "pending": {
+          "type": "integer",
+          "description": "Number of pending tasks"
+        },
+        "completion_rate": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Completion percentage (0-100)"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TaskItem"
+          },
+          "description": "List of all tasks for this project"
+        }
+      },
+      "required": ["project_dir", "completed", "in_progress", "pending", "completion_rate"]
+    },
+    "TasksResponse": {
+      "type": "object",
+      "description": "Response from /api/tasks endpoint",
+      "properties": {
+        "projects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProjectTaskSummary"
+          },
+          "description": "Task summaries by project"
+        },
+        "summary": {
+          "type": "object",
+          "properties": {
+            "total": {
+              "type": "integer"
+            },
+            "completed": {
+              "type": "integer"
+            },
+            "in_progress": {
+              "type": "integer"
+            },
+            "pending": {
+              "type": "integer"
+            }
+          },
+          "required": ["total", "completed", "in_progress", "pending"],
+          "description": "Aggregate summary across all projects"
+        }
+      },
+      "required": ["projects", "summary"]
+    }
+  }
+}
