@@ -19,9 +19,12 @@ const handler = createHandler(store);
 app.use(express.json());
 
 // Serve static files (web/dist)
-const distPath = path.join(__dirname, '../../web/dist');
+// __dirname is backends/nodejs/dist, so go up 3 levels to project root
+const distPath = path.resolve(__dirname, '../../../web/dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
+} else {
+  console.warn(`Warning: web/dist not found at ${distPath}`);
 }
 
 // API Routes
