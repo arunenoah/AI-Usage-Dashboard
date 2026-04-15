@@ -1,38 +1,75 @@
 # AI Usage Dashboard (`ai-sessions`)
 
-`ai-sessions` is a local-first analytics dashboard for Claude Code session activity. It parses Claude session JSONL files from `~/.claude/projects/`, computes usage and productivity metrics, and serves a React dashboard with live updates over WebSocket.
+> **Understand how you use Claude — cost, productivity, work patterns, and prompt quality, all in one place.**
 
-**[📖 Full Documentation](wiki/Home.md)** — User guides, developer docs, and troubleshooting
+`ai-sessions` is a local-first analytics dashboard that reads your Claude Code session history from `~/.claude/projects/` and turns it into actionable insights. No cloud. No account. No data leaves your machine.
 
-## What it does
+---
 
-- Loads historical Claude Code sessions into an in-memory store.
-- Scores every prompt using the **CARE framework** (Context, Ask, Rules, Examples) on a 1-10 scale.
-- Aggregates token, tool, project, and daily activity metrics.
-- Streams near-real-time updates when session files change.
-- Exposes REST APIs for dashboard data and detailed drill-down views.
-- Serves a React + Vite UI from the same Go binary.
+## Why this exists
 
-## Dashboard Sections
+Every Claude Code session generates rich data — tokens used, tools called, prompts written, costs incurred. That data sits in JSONL files on your disk and is never surfaced anywhere. `ai-sessions` reads those files and answers the questions developers actually care about:
 
-| Section | What it shows |
-|---|---|
-| **Stat Cards** | Sessions, tokens, projects, tool calls at a glance |
-| **By Project** | Cost and session count per project directory |
-| **By Model** | Output tokens and cost broken down by Claude model (Sonnet, Opus, Haiku) |
-| **By Activity** | Sessions classified by work type — Coding, Debugging, Feature Dev, Exploration, Refactoring, Testing, Delegation |
-| **Token Chart** | Daily input/output token usage over the selected date range |
-| **Tool Usage** | Top tools with clickable drill-down into sample inputs |
-| **Hourly Activity** | When you're most productive (24-hour bar chart) |
-| **Shell Commands** | Top CLI commands extracted from Bash tool calls |
-| **MCP Servers** | Tool call counts grouped by MCP server name |
-| **Conversations** | Recent user→assistant pairs with CARE prompt scores |
-| **Context Health** | Active session context usage |
-| **Tasks** | Aggregated task status across all projects |
-| **Session Explorer** | Paginated session table with detail drawer |
-| **Prompt Score** | CARE score distribution and quality breakdown |
+- **Where is my AI spend going?** See cost broken down by project and model.
+- **What type of work am I delegating to Claude?** Coding, debugging, exploration, feature dev — classified automatically.
+- **Am I writing good prompts?** The CARE framework (Context, Ask, Rules, Examples) scores every prompt 1–10 and tells you how to improve.
+- **Which tools and shell commands does Claude use on my behalf?** Top tools, Bash commands, and MCP server calls, all ranked.
+- **How productive am I across sessions?** Token efficiency, output ratio, hourly patterns, cache hit rate.
 
-All sections respond to the global date filter (Today / 7 Days / 1 Month / Custom / All).
+---
+
+## Screenshots
+
+### Dashboard overview — stat cards and token usage trend
+![Dashboard overview](docs/images/dashboard-overview.png)
+
+Quick numbers at a glance: total sessions, tokens used, active projects, tool calls. The token chart shows daily input/output over your selected date range with 70/300/900/ALL range presets.
+
+---
+
+### Cost and work breakdown — By Project, By Model, By Activity
+![By Project, By Model, By Activity](docs/images/dashboard-by-project-model-activity.png)
+
+See exactly where your AI budget is going. **By Project** ranks directories by cost. **By Model** shows which Claude models (Haiku, Sonnet, Opus) you actually use. **By Activity** classifies every session into a work type — Coding, Debugging, Feature Dev, Exploration, Refactoring, Testing, Delegation — using keyword analysis on first prompts.
+
+---
+
+### Shell commands and MCP server usage
+![Shell Commands and MCP Servers](docs/images/shell-commands-mcp-servers-conversations.png)
+
+**Shell Commands** extracts the first word of every Bash tool call across all sessions and ranks the most-used CLI tools. **MCP Servers** groups tool calls by server name from `mcp__server__tool` keys, so you can see which integrations (Figma, context7, filesystem, etc.) are doing real work.
+
+The **Conversations** panel below shows every user→assistant exchange with token counts, context usage, cost per turn, and CARE prompt scores.
+
+---
+
+### Session Explorer and Prompt Insights
+![Session Explorer and Prompt Insights](docs/images/session-explorer-and-prompt-insights.png)
+
+Browse all sessions across all projects in one table — filter by source (Claude, Cursor, Copilot), search by prompt or project, and click any row to open the detail drawer. **Prompt Insights** on the right shows your CARE score distribution, tier badge (Beginner → Expert), and per-dimension feedback.
+
+---
+
+### Tool usage and hourly activity
+![Tool Usage and Hourly Activity](docs/images/tool-usage-activity-and-conversations.png)
+
+**Tool Usage** ranks every tool by total calls with clickable drill-down into sample inputs. An anti-pattern warning fires when Bash:Grep ratio exceeds 1.3× (using shell `rg` instead of the Grep tool wastes ~18% tokens). **Hourly Activity** shows your peak coding hours across a 24-hour bar chart.
+
+---
+
+### Context health and Claude Code config
+![Context Health and System Info](docs/images/context-health-and-system-info.png)
+
+**Context Health** shows context window fill % per recent session — useful for spotting sessions that are growing too long. **Claude Code Config** surfaces your total message count, enabled plugins, connected MCP servers, session files, plans, and file history — all read from your local `~/.claude` folder.
+
+---
+
+### Session detail drawer
+![Session Detail Drawer](docs/images/session-detail-drawer.png)
+
+Click any session to open a full detail drawer: turn count, cache read/write, estimated cost, slowest and average turn durations, output tokens. Tabs for Timeline (turn-by-turn breakdown), Files (touched during the session), and Subagents spawned.
+
+---
 
 ## Quick Start
 
@@ -82,6 +119,31 @@ npm start
 
 See [Backend Selection Guide](./docs/BACKEND_SELECTION.md) for full comparison and troubleshooting.
 
+---
+
+## Dashboard Sections
+
+| Section | What it shows |
+|---|---|
+| **Stat Cards** | Sessions, tokens, projects, tool calls at a glance |
+| **By Project** | Cost and session count per project directory |
+| **By Model** | Output tokens and cost per Claude model (Haiku, Sonnet, Opus) |
+| **By Activity** | Sessions classified by work type — Coding, Debugging, Feature Dev, Exploration, Refactoring, Testing, Delegation |
+| **Token Chart** | Daily input/output token usage over the selected date range |
+| **Tool Usage** | Top tools with clickable drill-down into sample inputs |
+| **Hourly Activity** | When you're most productive (24-hour bar chart) |
+| **Shell Commands** | Top CLI commands extracted from Bash tool calls |
+| **MCP Servers** | Tool call counts grouped by MCP server name |
+| **Conversations** | Recent user→assistant pairs with CARE prompt scores, token counts, and cost per turn |
+| **Context Health** | Context window fill % per recent session |
+| **Tasks** | Aggregated task status across all projects |
+| **Session Explorer** | Paginated session table with source filter and detail drawer |
+| **Prompt Insights** | CARE score distribution, tier badge, per-dimension analysis, next-tier goals |
+
+All sections respond to the global date filter (Today / 7 Days / 1 Month / Custom / All).
+
+---
+
 ## Tech stack
 
 - **Backend (Go):** `net/http`, `embed`, `gorilla/websocket`, `fsnotify`
@@ -92,13 +154,15 @@ See [Backend Selection Guide](./docs/BACKEND_SELECTION.md) for full comparison a
 
 The dashboard follows a **single-binary, layered architecture**:
 
-1. **Adapter layer** — Multi-source session parsers (Claude Code, Copilot)
+1. **Adapter layer** — Multi-source session parsers (Claude Code, Copilot, Cursor, Windsurf)
 2. **Store layer** — In-memory indexed session store with aggregation
 3. **API layer** — REST endpoints with pagination and filtering
 4. **WebSocket layer** — Real-time updates via hub broadcast
 5. **UI layer** — React SPA consuming REST + WebSocket
 
 For a detailed breakdown, see [System Design Overview](wiki/Dev-System-Design-Overview.md) in the wiki.
+
+---
 
 ## Local Development
 
@@ -117,6 +181,8 @@ go run .
 Frontend proxy (Vite) forwards `/api` and `/ws` to `http://localhost:8765`.
 
 See [Local Development Setup](wiki/Dev-Local-Development-Setup.md) for full details.
+
+---
 
 ## API Reference
 
@@ -143,9 +209,9 @@ Base URL: `http://localhost:8765`
 - `GET /api/insights?days=N&refresh=1` — Prompt quality tier, per-dimension analysis, next-tier goals, peer benchmarks
 
 **Tools & System**
-- `GET /api/tools/:name/samples` — Tool usage samples
-- `GET /api/system` — Claude environment metadata and usage
-- `GET /api/tasks` — Aggregated task status
+- `GET /api/tools/:name/samples` — Tool usage samples with project and timestamp
+- `GET /api/system` — Claude environment metadata, enabled plugins, MCP servers, model usage
+- `GET /api/tasks` — Aggregated task status across all projects
 - `GET /api/history?days=N&limit=N` — Recent entries from `~/.claude/history.jsonl`
 - `GET /api/image?path=<absolute-path>` — Image files under `~/.claude/image-cache`
 
@@ -155,6 +221,8 @@ Endpoint: `/ws`
 
 - `session_updated` — Broadcast when a session file changes
   - Payload: `{ session_id, input_tokens, project_dir }`
+
+---
 
 ## Contributing
 
@@ -167,9 +235,11 @@ The project is organized into:
 
 See [Developer Quick Start](wiki/Dev-Getting-Started-Quick-Start.md) to get set up for contributing.
 
+---
+
 ## Notes
 
-- **Local-first:** This app reads from your local Claude data folder at `~/.claude`
-- **Session scoring:** The CARE framework (Context, Ask, Rules, Examples) is computed server-side per conversation. Scores are strict to challenge you to improve
-- **Token focus:** Dashboard shows token consumption, not cost estimates (most users are on subscription plans)
-- **Multi-source:** The adapter interface supports Claude Code, GitHub Copilot, and is ready for Cursor, Windsurf, and more
+- **Local-first:** Reads only from your local `~/.claude` folder. Nothing is sent anywhere.
+- **Session scoring:** The CARE framework (Context, Ask, Rules, Examples) is computed server-side per conversation. Scores cap at 7 for prompts missing structural components, encouraging deliberate prompt craft.
+- **Multi-source:** Supports Claude Code, GitHub Copilot, Cursor, Windsurf, and OpenCode via the adapter interface.
+- **Live updates:** A file watcher pushes session changes over WebSocket so the dashboard updates in near real-time as Claude works.
