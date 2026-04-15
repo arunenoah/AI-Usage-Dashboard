@@ -85,6 +85,8 @@ class Store {
                 date: dateStr,
                 input_tokens: 0,
                 output_tokens: 0,
+                cache_read: 0,
+                cache_creation: 0,
                 sessions: 0,
                 est_cost_usd: 0
             };
@@ -98,9 +100,11 @@ class Store {
             daySessions.forEach(session => {
                 dailyStats.input_tokens += session.total_usage?.input_tokens || 0;
                 dailyStats.output_tokens += session.total_usage?.output_tokens || 0;
-                // Cost calculation: $0.003/1M input, $0.015/1M output, $0.30/1M cache_read, $3.75/1M cache_write
-                const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
-                const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
+                dailyStats.cache_read += session.total_usage?.cache_read_input_tokens || 0;
+                dailyStats.cache_creation += session.total_usage?.cache_creation_input_tokens || 0;
+                // Cost calculation: $3.0/1M input, $15.0/1M output, $0.30/1M cache_read, $3.75/1M cache_write
+                const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 3.0;
+                const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 15.0;
                 const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
                 const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
                 dailyStats.est_cost_usd += inputCost + outputCost + cacheReadCost + cacheWriteCost;
@@ -130,8 +134,8 @@ class Store {
             totalOutputTokens += session.total_usage?.output_tokens || 0;
             totalCacheReadTokens += session.total_usage?.cache_read_input_tokens || 0;
             totalCacheCreationTokens += session.total_usage?.cache_creation_input_tokens || 0;
-            const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
-            const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
+            const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 3.0;
+            const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 15.0;
             const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
             const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
             totalCost += inputCost + outputCost + cacheReadCost + cacheWriteCost;
@@ -147,6 +151,15 @@ class Store {
             }
         });
         return {
+            summary: {
+                totalSessions: this.sessionList.length,
+                totalTokens: totalInputTokens + totalOutputTokens,
+                totalCost: totalCost,
+                totalInputTokens: totalInputTokens,
+                totalOutputTokens: totalOutputTokens,
+                totalCacheReadTokens: totalCacheReadTokens,
+                totalCacheCreationTokens: totalCacheCreationTokens
+            },
             total_sessions: this.sessionList.length,
             total_input_tokens: totalInputTokens,
             total_output_tokens: totalOutputTokens,
@@ -177,6 +190,8 @@ class Store {
                 date: dateStr,
                 input_tokens: 0,
                 output_tokens: 0,
+                cache_read: 0,
+                cache_creation: 0,
                 sessions: 0,
                 est_cost_usd: 0
             };
@@ -190,8 +205,10 @@ class Store {
             daySessions.forEach(session => {
                 dailyStats.input_tokens += session.total_usage?.input_tokens || 0;
                 dailyStats.output_tokens += session.total_usage?.output_tokens || 0;
-                const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
-                const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
+                dailyStats.cache_read += session.total_usage?.cache_read_input_tokens || 0;
+                dailyStats.cache_creation += session.total_usage?.cache_creation_input_tokens || 0;
+                const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 3.0;
+                const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 15.0;
                 const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
                 const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
                 dailyStats.est_cost_usd += inputCost + outputCost + cacheReadCost + cacheWriteCost;
@@ -217,8 +234,8 @@ class Store {
             totalOutputTokens += session.total_usage?.output_tokens || 0;
             totalCacheReadTokens += session.total_usage?.cache_read_input_tokens || 0;
             totalCacheCreationTokens += session.total_usage?.cache_creation_input_tokens || 0;
-            const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 0.003;
-            const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 0.015;
+            const inputCost = ((session.total_usage?.input_tokens || 0) / 1000000) * 3.0;
+            const outputCost = ((session.total_usage?.output_tokens || 0) / 1000000) * 15.0;
             const cacheReadCost = ((session.total_usage?.cache_read_input_tokens || 0) / 1000000) * 0.30;
             const cacheWriteCost = ((session.total_usage?.cache_creation_input_tokens || 0) / 1000000) * 3.75;
             totalCost += inputCost + outputCost + cacheReadCost + cacheWriteCost;
@@ -232,6 +249,15 @@ class Store {
             }
         });
         return {
+            summary: {
+                totalSessions: rangeSessions.length,
+                totalTokens: totalInputTokens + totalOutputTokens,
+                totalCost: totalCost,
+                totalInputTokens: totalInputTokens,
+                totalOutputTokens: totalOutputTokens,
+                totalCacheReadTokens: totalCacheReadTokens,
+                totalCacheCreationTokens: totalCacheCreationTokens
+            },
             total_sessions: rangeSessions.length,
             total_input_tokens: totalInputTokens,
             total_output_tokens: totalOutputTokens,
@@ -601,6 +627,48 @@ class Store {
             agent_usage_pct: agentUsagePct,
             avg_tool_diversity: Math.round(avgToolDiversity * 10) / 10
         };
+    }
+    /**
+     * Parse turns from a session's JSONL file
+     * @param sessionId The session ID to get turns for
+     * @returns Array of turn entries or empty array if not found
+     */
+    async parseTurns(sessionId) {
+        const session = this.sessionList.find(s => s.id === sessionId);
+        if (!session) {
+            return [];
+        }
+        // Get adapter based on session source
+        let adapter;
+        switch (session.source) {
+            case 'claude-code':
+                adapter = new claudecode_1.ClaudeCodeAdapter();
+                break;
+            case 'github-copilot':
+                adapter = new copilot_1.CopilotAdapter();
+                break;
+            case 'opencode':
+                adapter = new opencode_1.OpenCodeAdapter();
+                break;
+            case 'windsurf':
+                adapter = new windsurf_1.WindsurfAdapter();
+                break;
+            default:
+                return [];
+        }
+        try {
+            // Use the file_path from the session
+            const filePath = session.file_path;
+            if (!filePath) {
+                return [];
+            }
+            const turns = await adapter.parseTurnsFull(filePath);
+            return turns || [];
+        }
+        catch (err) {
+            console.error(`Error parsing turns for session ${sessionId}:`, err);
+            return [];
+        }
     }
 }
 exports.Store = Store;

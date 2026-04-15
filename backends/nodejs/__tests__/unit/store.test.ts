@@ -229,9 +229,9 @@ describe('Store', () => {
 
       expect(stats.summary.totalSessions).toBe(1);
       expect(stats.summary.totalTokens).toBe(1500);
-      // Cost is calculated from token usage, so it should be greater than 0
+      // Cost is calculated from token usage: (1000/1e6 * 3.0) + (500/1e6 * 15.0) = 0.0105
       expect(stats.summary.totalCost).toBeGreaterThan(0);
-      expect(stats.summary.totalCost).toBeLessThan(0.001); // Less than $0.001
+      expect(stats.summary.totalCost).toBeCloseTo(0.0105, 4);
     });
 
     test('should have proper date format in daily stats', () => {

@@ -113,8 +113,9 @@ describe('API Handlers', () => {
 
       const res = await request(app).get('/api/sessions/test-session-123');
       expect(res.status).toBe(200);
-      expect(res.body.id).toBe('test-session-123');
-      expect(res.body.project_dir).toBe('/test/project');
+      expect(res.body.session.id).toBe('test-session-123');
+      expect(res.body.session.project_dir).toBe('/test/project');
+      expect(Array.isArray(res.body.turns)).toBe(true);
     });
 
     test('should return 404 for non-existent session', async () => {
@@ -145,7 +146,9 @@ describe('API Handlers', () => {
     test('should return history array', async () => {
       const res = await request(app).get('/api/history');
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveProperty('entries');
+      expect(res.body).toHaveProperty('total');
+      expect(Array.isArray(res.body.entries)).toBe(true);
     });
   });
 

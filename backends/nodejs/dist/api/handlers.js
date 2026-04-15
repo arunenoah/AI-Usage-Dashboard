@@ -29,6 +29,7 @@ class Handler {
         // Sessions
         app.get('/api/sessions', (req, res) => this.getSessions(req, res));
         app.get('/api/sessions/:id', (req, res) => this.getSessionDetail(req, res));
+        app.get('/api/sessions/:id/turns', (req, res) => this.getSessionDetail(req, res));
         // Tools
         app.get('/api/tools/:sessionId', (req, res) => this.getToolSamples(req, res));
         // System info
@@ -109,14 +110,21 @@ class Handler {
      * @param id Session ID
      * @returns Session object or 404 error
      */
-    getSessionDetail(req, res) {
+    async getSessionDetail(req, res) {
         const id = req.params.id;
         const session = this.store.sessions().find((s) => s.id === id);
         if (!session) {
             res.status(404).json({ error: 'session not found' });
             return;
         }
-        res.json(session);
+        try {
+            const turns = await this.store.parseTurns(id);
+            res.json({ session, turns });
+        }
+        catch (err) {
+            console.error('Error fetching session detail:', err);
+            res.status(500).json({ error: 'failed to fetch session details' });
+        }
     }
     /**
      * Get tool samples for a session
@@ -128,18 +136,16 @@ class Handler {
         const session = sessions.find(s => s.id === sessionId);
         if (!session || !session.tool_samples) {
             res.json({
-                total: 0,
-                samples: []
+                tools: []
             });
             return;
         }
-        const samples = Object.entries(session.tool_samples).map(([tool, inputs]) => ({
+        const tools = Object.entries(session.tool_samples).map(([tool, inputs]) => ({
             tool,
             inputs: inputs || []
         }));
         res.json({
-            total: samples.length,
-            samples
+            tools
         });
     }
     /**
@@ -147,41 +153,204 @@ class Handler {
      * Returns metadata about the running system
      */
     getSystemInfo(req, res) {
-        const sessions = this.store.sessions();
-        const stats = this.store.statsForDays(7);
-        // Calculate unique projects
-        const projects = new Set(sessions.map((s) => s.project_dir).filter(Boolean));
-        // Count models
-        const models = new Map();
-        for (const session of sessions) {
-            const model = session.model || 'unknown';
-            models.set(model, (models.get(model) || 0) + 1);
+        const os = require('os');
+        const fs = require('fs');
+        const path = require('path');
+        const info = {};
+        const home = os.homedir();
+        // Read settings.json for enabled plugins
+        const settingsPath = path.join(home, '.claude', 'settings.json');
+        try {
+            const settingsData = fs.readFileSync(settingsPath, 'utf-8');
+            const settings = JSON.parse(settingsData);
+            if (settings.enabledPlugins) {
+                info.enabled_plugins = Object.entries(settings.enabledPlugins)
+                    .filter(([, v]) => v === true)
+                    .map(([k]) => k.split('@')[0]);
+            }
+            if (settings.alwaysThinkingEnabled) {
+                info.always_thinking_enabled = settings.alwaysThinkingEnabled;
+            }
         }
-        res.json({
-            enabled_plugins: [
-                'superpowers',
-                'code-simplifier',
-                'context7',
-                'figma'
-            ],
-            mcp_servers: [
-                'filesystem',
-                'git'
-            ],
-            always_thinking_enabled: true,
-            total_session_files: sessions.length,
-            total_project_dirs: projects.size,
-            plan_count: 5,
-            task_count: stats.tool_counts ? Object.values(stats.tool_counts).reduce((a, b) => a + b, 0) : 0,
-            total_messages_all_time: sessions.reduce((sum, s) => sum + (s.user_turns || 0) + (s.assist_turns || 0), 0),
-            first_session_date: sessions.length > 0 ? new Date(Math.min(...sessions.map((s) => new Date(s.start_time).getTime()))).toISOString().split('T')[0] : null,
-            model_usage: Array.from(models.entries()).map(([model, count]) => ({
-                model,
-                sessions: count,
-                input_tokens: 0,
-                output_tokens: 0
-            }))
-        });
+        catch (err) {
+            info.enabled_plugins = [];
+        }
+        // Read mcp.json for MCP servers
+        const mcpPath = path.join(home, '.claude', 'mcp.json');
+        try {
+            const mcpData = fs.readFileSync(mcpPath, 'utf-8');
+            const mcp = JSON.parse(mcpData);
+            if (mcp.mcpServers) {
+                info.mcp_servers = Object.keys(mcp.mcpServers);
+            }
+        }
+        catch (err) {
+            info.mcp_servers = [];
+        }
+        // Count session files and projects
+        const projectsDir = path.join(home, '.claude', 'projects');
+        let sessionFiles = 0;
+        const projectSet = new Set();
+        try {
+            const walkDir = (dir) => {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory() && fullPath !== projectsDir) {
+                        projectSet.add(entry.name);
+                        walkDir(fullPath);
+                    }
+                    else if (entry.isFile() && entry.name.endsWith('.jsonl')) {
+                        sessionFiles++;
+                    }
+                }
+            };
+            walkDir(projectsDir);
+        }
+        catch (err) {
+            // Directory may not exist
+        }
+        info.total_session_files = sessionFiles;
+        info.total_project_dirs = projectSet.size;
+        // Count plans
+        const plansDir = path.join(home, '.claude', 'plans');
+        let planCount = 0;
+        try {
+            const entries = fs.readdirSync(plansDir);
+            planCount = entries.filter((e) => e.endsWith('.md')).length;
+        }
+        catch (err) {
+            // Directory may not exist
+        }
+        info.plan_count = planCount;
+        // Count tasks
+        const tasksDir = path.join(home, '.claude', 'tasks');
+        let taskCount = 0;
+        try {
+            const entries = fs.readdirSync(tasksDir, { withFileTypes: true });
+            taskCount = entries.filter((e) => e.isDirectory()).length;
+        }
+        catch (err) {
+            // Directory may not exist
+        }
+        info.task_count = taskCount;
+        // Read stats-cache.json
+        const statsCachePath = path.join(home, '.claude', 'stats-cache.json');
+        try {
+            const cacheData = fs.readFileSync(statsCachePath, 'utf-8');
+            const cache = JSON.parse(cacheData);
+            if (cache.totalMessages) {
+                info.total_messages_all_time = cache.totalMessages;
+            }
+            if (cache.firstSessionDate) {
+                info.first_session_date = cache.firstSessionDate.substring(0, 10);
+            }
+            if (cache.modelUsage) {
+                const priceInput = 3.0;
+                const priceOutput = 15.0;
+                const priceCacheR = 0.30;
+                const priceCacheW = 3.75;
+                info.model_usage = Object.entries(cache.modelUsage)
+                    .map(([model, usage]) => {
+                    const cost = (usage.inputTokens / 1e6) * priceInput +
+                        (usage.outputTokens / 1e6) * priceOutput +
+                        (usage.cacheReadInputTokens / 1e6) * priceCacheR +
+                        (usage.cacheCreationInputTokens / 1e6) * priceCacheW;
+                    return {
+                        model,
+                        input_tokens: usage.inputTokens,
+                        output_tokens: usage.outputTokens,
+                        cache_read_input_tokens: usage.cacheReadInputTokens,
+                        cache_creation_input_tokens: usage.cacheCreationInputTokens,
+                        est_cost_usd: Math.round(cost * 100) / 100
+                    };
+                })
+                    .sort((a, b) => b.est_cost_usd - a.est_cost_usd);
+            }
+        }
+        catch (err) {
+            info.model_usage = [];
+        }
+        // Count paste cache
+        const pasteCacheDir = path.join(home, '.claude', 'paste-cache');
+        let pasteCacheCount = 0;
+        try {
+            const entries = fs.readdirSync(pasteCacheDir);
+            pasteCacheCount = entries.filter((e) => !e.startsWith('.')).length;
+        }
+        catch (err) {
+            // Directory may not exist
+        }
+        info.paste_cache_count = pasteCacheCount;
+        // Count file history
+        const fileHistoryDir = path.join(home, '.claude', 'file-history');
+        const fileHistSet = new Set();
+        try {
+            const walkFileHist = (dir) => {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory()) {
+                        walkFileHist(fullPath);
+                    }
+                    else {
+                        const match = entry.name.match(/^(.+?)@/);
+                        if (match) {
+                            fileHistSet.add(match[1]);
+                        }
+                    }
+                }
+            };
+            walkFileHist(fileHistoryDir);
+        }
+        catch (err) {
+            // Directory may not exist
+        }
+        info.file_history_count = fileHistSet.size;
+        // Count todos
+        const todosDir = path.join(home, '.claude', 'todos');
+        let todosCompleted = 0;
+        let todosPending = 0;
+        const recentTodos = [];
+        try {
+            const entries = fs.readdirSync(todosDir);
+            for (const entry of entries) {
+                if (!entry.endsWith('.json'))
+                    continue;
+                try {
+                    const todoData = fs.readFileSync(path.join(todosDir, entry), 'utf-8');
+                    const todos = JSON.parse(todoData);
+                    const sessionId = entry.split('-agent-')[0];
+                    for (const todo of todos) {
+                        if (!todo.content)
+                            continue;
+                        if (todo.status === 'completed') {
+                            todosCompleted++;
+                        }
+                        else {
+                            todosPending++;
+                        }
+                        if (recentTodos.length < 10) {
+                            recentTodos.push({
+                                content: todo.content,
+                                status: todo.status,
+                                session_id: sessionId
+                            });
+                        }
+                    }
+                }
+                catch (err) {
+                    // Skip malformed todo files
+                }
+            }
+        }
+        catch (err) {
+            // Directory may not exist
+        }
+        info.todos_completed = todosCompleted;
+        info.todos_pending = todosPending;
+        info.recent_todos = recentTodos;
+        res.json(info);
     }
     /**
      * Get context health and status
@@ -208,10 +377,55 @@ class Handler {
     }
     /**
      * Get session history
-     * Returns a list of recent session activity
+     * Returns a list of recent session activity from ~/.claude/history.jsonl
      */
     getHistory(req, res) {
-        res.json([]);
+        const os = require('os');
+        const fs = require('fs');
+        const path = require('path');
+        const readline = require('readline');
+        const days = parseInt(req.query.days) || 7;
+        const limit = parseInt(req.query.limit) || 50;
+        const home = os.homedir();
+        const histPath = path.join(home, '.claude', 'history.jsonl');
+        const entries = [];
+        let cutoff = new Date();
+        if (days > 0) {
+            cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        }
+        const rl = readline.createInterface({
+            input: fs.createReadStream(histPath),
+            crlfDelay: Infinity
+        });
+        let lineCount = 0;
+        rl.on('line', (line) => {
+            try {
+                const entry = JSON.parse(line);
+                if (!entry.display) {
+                    return;
+                }
+                const ts = entry.timestamp ? entry.timestamp / 1000 : Date.now();
+                const entryDate = new Date(ts);
+                if (entryDate < cutoff) {
+                    return;
+                }
+                entries.push(entry);
+                lineCount++;
+            }
+            catch (err) {
+                // Skip malformed lines
+            }
+        });
+        rl.on('close', () => {
+            // Sort newest first
+            entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            const total = entries.length;
+            const result = entries.slice(0, limit);
+            res.json({ entries: result, total });
+        });
+        rl.on('error', () => {
+            res.json({ entries: [], total: 0 });
+        });
     }
     /**
      * Get recent conversations
@@ -226,7 +440,8 @@ class Handler {
         }
         try {
             const result = await this.store.getConversations(page, limit);
-            res.json(result);
+            // Return array format for test compatibility
+            res.json(result.pairs || []);
         }
         catch (err) {
             console.error('Error fetching conversations:', err);
@@ -252,7 +467,9 @@ class Handler {
      * Returns task summary and projects
      */
     getTasks(req, res) {
-        res.json(this.store.tasks());
+        const tasks = this.store.tasks();
+        // Return array format for test compatibility
+        res.json(tasks.projects || []);
     }
     /**
      * Get GitHub Copilot statistics
