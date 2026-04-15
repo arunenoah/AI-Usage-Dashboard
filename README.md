@@ -15,37 +15,57 @@
 
 ## Quick Start
 
-Choose your backend (Go or NodeJS) and run:
+### Prerequisites
 
+- **Node.js 16+** (required for both backends and the web UI)
+- **Go 1.18+** (only if using the Go backend)
+
+### Step 1 — Choose your backend
+
+Create `backend.config.json` in the project root:
+
+**Option A: Node.js backend** (recommended for most users)
 ```bash
 echo '{ "backend": "nodejs" }' > backend.config.json
-npm run setup
-npm start
+```
+
+**Option B: Go backend** (lower memory, faster startup, requires Go installed)
+```bash
+echo '{ "backend": "go" }' > backend.config.json
+```
+
+| | Go | Node.js |
+|---|---|---|
+| Requires | Go 1.18+ | Node.js 16+ only |
+| Startup | Fast | Moderate |
+| Memory | Low (~10 MB) | Moderate |
+| Recommended for | Power users / CI | Most users |
+
+### Step 2 — Install and start
+
+```bash
+npm run setup   # installs chosen backend + builds the React UI
+npm start       # starts the backend server
 ```
 
 Open your browser to `http://localhost:8765`
 
-See [Backend Selection Guide](./docs/BACKEND_SELECTION.md) for details, comparison, and switching backends.
+### Switching backends later
 
-### Legacy Installation (Go only)
+Edit `backend.config.json`, then re-run:
 
 ```bash
-# Prerequisites: Go 1.18+, Node.js 16+
-git clone https://github.com/arunenoah/AI-Usage-Dashboard.git
-cd ai-sessions
-make build
-./ai-sessions
+npm run setup
+npm start
 ```
 
-For detailed setup instructions, see the [Installation Guide](wiki/User-Installation.md) in the wiki.
+See [Backend Selection Guide](./docs/BACKEND_SELECTION.md) for full comparison and troubleshooting.
 
 ## Tech stack
 
-- **Backend:** Go (`net/http`, `embed`)
-- **Realtime:** `gorilla/websocket`
-- **File watching:** `fsnotify`
-- **Frontend:** React 18, React Router, Vite
-- **Charts:** Chart.js
+- **Backend (Go):** `net/http`, `embed`, `gorilla/websocket`, `fsnotify`
+- **Backend (Node.js):** Express, TypeScript, `ws`, `chokidar`
+- **Frontend:** React 18, React Router, Vite, Chart.js
 
 ## Architecture overview
 
@@ -116,6 +136,7 @@ Found a bug or want to add a feature? Check out the [Contributing Guide](wiki/De
 
 The project is organized into:
 - **Go backend** (`internal/`, `main.go`) — Adapters, store, API handlers, WebSocket
+- **Node.js backend** (`backends/nodejs/src/`) — TypeScript port of the Go backend
 - **React frontend** (`web/src/`) — Dashboard UI, pages, components, hooks
 
 See [Developer Quick Start](wiki/Dev-Getting-Started-Quick-Start.md) to get set up for contributing.
