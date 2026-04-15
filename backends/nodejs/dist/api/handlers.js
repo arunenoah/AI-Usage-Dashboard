@@ -118,10 +118,13 @@ class Handler {
     }
     /**
      * Get tool samples for a session
-     * Returns an array of tools and their usage examples
+     * Returns samples of tool usage
      */
     getToolSamples(req, res) {
-        res.json({ tools: [] });
+        res.json({
+            total: 0,
+            samples: []
+        });
     }
     /**
      * Get system information and configuration
@@ -139,10 +142,15 @@ class Handler {
     }
     /**
      * Get recent conversations
-     * Returns a list of recent user-assistant conversations
+     * Returns paginated list of recent user-assistant conversations
      */
     getConversations(req, res) {
-        res.json([]);
+        res.json({
+            pairs: [],
+            total: 0,
+            total_pages: 1,
+            page: 1
+        });
     }
     /**
      * Get insights and recommendations
@@ -160,10 +168,18 @@ class Handler {
     }
     /**
      * Get task data
-     * Returns list of tasks from the task management system
+     * Returns task summary and projects
      */
     getTasks(req, res) {
-        res.json([]);
+        res.json({
+            summary: {
+                total: 0,
+                completed: 0,
+                in_progress: 0,
+                pending: 0
+            },
+            projects: []
+        });
     }
     /**
      * Get GitHub Copilot statistics

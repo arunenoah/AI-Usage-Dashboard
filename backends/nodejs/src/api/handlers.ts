@@ -141,10 +141,13 @@ export class Handler {
 
   /**
    * Get tool samples for a session
-   * Returns an array of tools and their usage examples
+   * Returns samples of tool usage
    */
   private getToolSamples(req: Request, res: Response): void {
-    res.json({ tools: [] });
+    res.json({
+      total: 0,
+      samples: []
+    });
   }
 
   /**
@@ -165,10 +168,15 @@ export class Handler {
 
   /**
    * Get recent conversations
-   * Returns a list of recent user-assistant conversations
+   * Returns paginated list of recent user-assistant conversations
    */
   private getConversations(req: Request, res: Response): void {
-    res.json([]);
+    res.json({
+      pairs: [],
+      total: 0,
+      total_pages: 1,
+      page: 1
+    });
   }
 
   /**
@@ -189,10 +197,18 @@ export class Handler {
 
   /**
    * Get task data
-   * Returns list of tasks from the task management system
+   * Returns task summary and projects
    */
   private getTasks(req: Request, res: Response): void {
-    res.json([]);
+    res.json({
+      summary: {
+        total: 0,
+        completed: 0,
+        in_progress: 0,
+        pending: 0
+      },
+      projects: []
+    });
   }
 
   /**
