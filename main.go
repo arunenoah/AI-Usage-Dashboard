@@ -50,11 +50,13 @@ func main() {
 	claudeWatchDir := filepath.Join(home, ".claude", "projects")
 	copilotWatchDir := vsCodeWorkspaceStorageDir(home)
 	windsurfWatchDir := windsurf.WindsurfWatchDir(home)
+	opencodeWatchDir := filepath.Join(home, ".local", "share", "opencode")
 
 	w := watcher.New(sessionStore, hub,
 		watcher.Target{Dir: claudeWatchDir, Adapter: claudeAdapter},
 		watcher.Target{Dir: copilotWatchDir, Adapter: copilotAdapter},
-		watcher.Target{Dir: windsurfWatchDir, Adapter: windsurfAdapter},
+		watcher.Target{Dir: windsurfWatchDir, Adapter: windsurfAdapter, FileExts: []string{".vscdb"}},
+		watcher.Target{Dir: opencodeWatchDir, Adapter: opencodeAdapter, FileExts: []string{".db"}},
 	)
 	if err := w.Start(); err != nil {
 		log.Printf("watcher warning: %v", err)
